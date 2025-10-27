@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
+import { AutocompleteInput, FormattedInput } from '../components/FormInputs';
+import { 
+  formatPhoneNumber, 
+  formatSSN, 
+  formatZipCode, 
+  formatCurrency,
+  US_STATES,
+  MAJOR_CITIES,
+  COUNTRIES,
+  INDUSTRIES
+} from '../utils/inputFormatting';
 
 interface FormData {
   // Personal Information
@@ -216,6 +227,22 @@ export default function Register() {
     }
   };
 
+  // Handler for formatted inputs
+  const handleFormattedChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name as keyof FormData]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
   const validateStep = (step: number): boolean => {
     const newErrors: Partial<FormData> = {};
 
@@ -357,10 +384,11 @@ export default function Register() {
   };
 
   const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
+    const stepContent = (() => {
+      switch (currentStep) {
+        case 1:
+          return (
+            <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
               <p className="text-gray-600">Let's start with your basic details</p>
@@ -480,16 +508,16 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Phone Number *</label>
-                <input
-                  type="tel"
-                  name="phoneNumber"
+                <FormattedInput
+                  label="Phone Number"
                   value={formData.phoneNumber}
-                  onChange={handleChange}
-                  className={`form-input ${errors.phoneNumber ? 'form-error' : ''}`}
-                  placeholder="+1 (555) 123-4567"
+                  onChange={(value) => handleFormattedChange('phoneNumber', value)}
+                  formatter={formatPhoneNumber}
+                  placeholder="(555) 123-4567"
+                  required
+                  error={errors.phoneNumber}
+                  maxLength={14}
                 />
-                {errors.phoneNumber && <p className="error-text">{errors.phoneNumber}</p>}
               </div>
 
               <div>
@@ -557,44 +585,42 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">City *</label>
-                <input
-                  type="text"
-                  name="city"
+                <AutocompleteInput
+                  label="City"
                   value={formData.city}
-                  onChange={handleChange}
-                  className={`form-input ${errors.city ? 'form-error' : ''}`}
+                  onChange={(value) => handleFormattedChange('city', value)}
+                  options={MAJOR_CITIES}
                   placeholder="New York"
+                  required
+                  error={errors.city}
                 />
-                {errors.city && <p className="error-text">{errors.city}</p>}
               </div>
 
               <div>
-                <label className="form-label">State/Province *</label>
-                <input
-                  type="text"
-                  name="state"
+                <AutocompleteInput
+                  label="State/Province"
                   value={formData.state}
-                  onChange={handleChange}
-                  className={`form-input ${errors.state ? 'form-error' : ''}`}
-                  placeholder="NY"
+                  onChange={(value) => handleFormattedChange('state', value)}
+                  options={US_STATES}
+                  placeholder="New York"
+                  required
+                  error={errors.state}
                 />
-                {errors.state && <p className="error-text">{errors.state}</p>}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">ZIP/Postal Code *</label>
-                <input
-                  type="text"
-                  name="zipCode"
+                <FormattedInput
+                  label="ZIP/Postal Code"
                   value={formData.zipCode}
-                  onChange={handleChange}
-                  className={`form-input ${errors.zipCode ? 'form-error' : ''}`}
-                  placeholder="10001"
+                  onChange={(value) => handleFormattedChange('zipCode', value)}
+                  formatter={formatZipCode}
+                  placeholder="12345-6789"
+                  required
+                  error={errors.zipCode}
+                  maxLength={10}
                 />
-                {errors.zipCode && <p className="error-text">{errors.zipCode}</p>}
               </div>
 
               <div>
@@ -750,16 +776,16 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="form-label">Social Security Number *</label>
-                <input
-                  type="text"
-                  name="ssn"
+                <FormattedInput
+                  label="Social Security Number"
                   value={formData.ssn}
-                  onChange={handleChange}
-                  className={`form-input ${errors.ssn ? 'form-error' : ''}`}
-                  placeholder="XXX-XX-XXXX"
+                  onChange={(value) => handleFormattedChange('ssn', value)}
+                  formatter={formatSSN}
+                  placeholder="123-45-6789"
+                  required
+                  error={errors.ssn}
+                  maxLength={11}
                 />
-                {errors.ssn && <p className="error-text">{errors.ssn}</p>}
               </div>
             </div>
 
@@ -1385,6 +1411,16 @@ export default function Register() {
       default:
         return null;
     }
+    })();
+
+    return (
+      <div 
+        key={currentStep} 
+        className="form-step transition-all duration-500 ease-in-out transform"
+      >
+        {stepContent}
+      </div>
+    );
   };
 
   return (
