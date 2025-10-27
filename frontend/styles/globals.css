@@ -173,6 +173,50 @@
   .spinner {
     @apply animate-spin rounded-full border-2 border-gray-200 border-t-blue-600;
   }
+  
+  /* Form transitions */
+  .form-step {
+    @apply transition-all duration-500 ease-in-out;
+  }
+  
+  .form-step-enter {
+    @apply opacity-0 transform translate-x-8;
+  }
+  
+  .form-step-enter-active {
+    @apply opacity-100 transform translate-x-0;
+  }
+  
+  .form-step-exit {
+    @apply opacity-100 transform translate-x-0;
+  }
+  
+  .form-step-exit-active {
+    @apply opacity-0 transform -translate-x-8;
+  }
+  
+  /* Input focus animations */
+  .input {
+    @apply form-input transition-all duration-200 transform;
+  }
+  
+  .input:focus {
+    @apply scale-[1.02] shadow-md;
+  }
+  
+  .label {
+    @apply form-label transition-colors duration-200;
+  }
+  
+  .input:focus + .label,
+  .input:not(:placeholder-shown) + .label {
+    @apply text-blue-600;
+  }
+  
+  /* Progress bar animation */
+  .progress-bar {
+    @apply bg-blue-600 h-2 rounded-full transition-all duration-700 ease-out;
+  }
 }
 
 @layer utilities {
