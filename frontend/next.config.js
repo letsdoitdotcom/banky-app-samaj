@@ -4,7 +4,14 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
   },
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // Get API URL and ensure it has protocol
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    
+    // Add https:// if missing and not localhost
+    if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+      apiUrl = `https://${apiUrl}`;
+    }
+    
     return [
       {
         source: '/api/:path*',
