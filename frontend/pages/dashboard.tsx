@@ -1,0 +1,576 @@
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
+import { userAPI, formatCurrency, formatDate, getTransactionStatusClass, handleAPIError } from '../lib/api';
+import toast from 'react-hot-toast';
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  accountNumber: string;
+  balance: number;
+  verified: boolean;
+  approved: boolean;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  identity: {
+    type: string;
+    number: string;
+  };
+}
+
+interface Transaction {
+  _id: string;
+  senderAccount: string;
+  receiverAccount: string;
+  amount: number;
+  type: 'internal' | 'external';
+  status: 'pending' | 'completed' | 'failed';
+  narration?: string;
+  createdAt: string;
+  senderName?: string;
+}
+
+interface TransferForm {
+  receiverAccount: string;
+  amount: string;
+  narration: string;
+}
+
+export default function Dashboard() {
+  const router = useRouter();
+  const { user, logout, isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'transfer' | 'history'>('overview');
+  const [userDetails, setUserDetails] = useState<User | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [transferLoading, setTransferLoading] = useState(false);
+  
+  const [transferForm, setTransferForm] = useState<TransferForm>({
+    receiverAccount: '',
+    amount: '',
+    narration: ''
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'user') {
+      router.push('/login');
+      return;
+    }
+    
+    fetchUserData();
+  }, [isAuthenticated, user, router]);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const [profileResponse, transactionsResponse] = await Promise.all([
+        userAPI.getProfile(),
+        userAPI.getTransactions()
+      ]);
+
+      setUserDetails(profileResponse.data);
+      setTransactions(transactionsResponse.data.transactions || []);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      toast.error('Error loading your account data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!transferForm.receiverAccount || !transferForm.amount) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const amount = parseFloat(transferForm.amount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    if (userDetails && amount > userDetails.balance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+
+    try {
+      setTransferLoading(true);
+      await userAPI.createTransfer({
+        receiverAccount: transferForm.receiverAccount,
+        amount: amount,
+        narration: transferForm.narration
+      });
+
+      toast.success('Transfer initiated successfully!');
+      setTransferForm({ receiverAccount: '', amount: '', narration: '' });
+      setActiveTab('history');
+      fetchUserData(); // Refresh data
+    } catch (error) {
+      const errorMessage = handleAPIError(error);
+      toast.error(errorMessage);
+    } finally {
+      setTransferLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userDetails) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading your account information</p>
+          <button onClick={() => router.push('/login')} className="btn-primary">
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold">⚡</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">BankyApp</h1>
+                <p className="text-sm text-gray-600">Your Digital Banking Experience</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">{userDetails.name}</p>
+                <p className="text-xs text-gray-600">{userDetails.accountNumber}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="btn-secondary text-sm"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 bg-white shadow-sm min-h-screen">
+          <nav className="p-4 space-y-2">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'overview'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🏠 Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('transfer')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'transfer'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              💸 Transfer Money
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'history'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📋 Transaction History
+            </button>
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Account Overview</h2>
+                <button
+                  onClick={fetchUserData}
+                  className="btn-primary"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {/* Account Balance Card */}
+              <div className="card bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm">Available Balance</p>
+                    <p className="text-3xl font-bold">{formatCurrency(userDetails.balance)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-blue-100 text-sm">Account Number</p>
+                    <p className="text-lg font-mono">{userDetails.accountNumber}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="card">
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-green-100">
+                      <span className="text-green-600 text-xl">📈</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm text-gray-600">Total Transactions</p>
+                      <p className="text-2xl font-bold text-gray-900">{transactions.length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-blue-100">
+                      <span className="text-blue-600 text-xl">✅</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm text-gray-600">Account Status</p>
+                      <p className="text-lg font-semibold text-green-600">
+                        {userDetails.approved ? 'Active' : 'Pending'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-purple-100">
+                      <span className="text-purple-600 text-xl">🔒</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm text-gray-600">Verification Status</p>
+                      <p className="text-lg font-semibold text-green-600">
+                        {userDetails.verified ? 'Verified' : 'Unverified'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Information */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="card">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600">Full Name</p>
+                      <p className="font-medium text-gray-900">{userDetails.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Email Address</p>
+                      <p className="font-medium text-gray-900">{userDetails.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone Number</p>
+                      <p className="font-medium text-gray-900">{userDetails.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Identity Document</p>
+                      <p className="font-medium text-gray-900">
+                        {userDetails.identity.type}: {userDetails.identity.number}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600">Street Address</p>
+                      <p className="font-medium text-gray-900">{userDetails.address.street}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">City</p>
+                      <p className="font-medium text-gray-900">{userDetails.address.city}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">State / Province</p>
+                      <p className="font-medium text-gray-900">{userDetails.address.state}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">ZIP Code / Postal Code</p>
+                      <p className="font-medium text-gray-900">{userDetails.address.zipCode}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Country</p>
+                      <p className="font-medium text-gray-900">{userDetails.address.country}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Transactions */}
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+                  <button
+                    onClick={() => setActiveTab('history')}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {transactions.slice(0, 5).map((transaction) => (
+                    <div key={transaction._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {transaction.senderAccount === userDetails.accountNumber ? 'Sent' : 'Received'}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {transaction.senderAccount === userDetails.accountNumber 
+                            ? `To: ${transaction.receiverAccount}`
+                            : `From: ${transaction.senderAccount}`
+                          }
+                        </p>
+                        <p className="text-xs text-gray-500">{formatDate(transaction.createdAt)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-medium ${
+                          transaction.senderAccount === userDetails.accountNumber 
+                            ? 'text-red-600' 
+                            : 'text-green-600'
+                        }`}>
+                          {transaction.senderAccount === userDetails.accountNumber ? '-' : '+'}
+                          {formatCurrency(transaction.amount)}
+                        </p>
+                        <span className={`badge ${getTransactionStatusClass(transaction.status)}`}>
+                          {transaction.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {transactions.length === 0 && (
+                    <p className="text-gray-600 text-center py-4">No transactions yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'transfer' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">Transfer Money</h2>
+
+              {/* Balance Display */}
+              <div className="card bg-blue-50 border-blue-200">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-full bg-blue-100">
+                    <span className="text-blue-600 text-xl">💰</span>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm text-blue-600">Available Balance</p>
+                    <p className="text-2xl font-bold text-blue-900">{formatCurrency(userDetails.balance)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transfer Form */}
+              <div className="card">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Send Money</h3>
+                <form onSubmit={handleTransfer} className="space-y-6">
+                  <div>
+                    <label className="form-label">
+                      Recipient Account Number *
+                    </label>
+                    <input
+                      type="text"
+                      value={transferForm.receiverAccount}
+                      onChange={(e) => setTransferForm({ ...transferForm, receiverAccount: e.target.value })}
+                      className="form-input"
+                      placeholder="Enter recipient's account number"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">
+                      Amount *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        max={userDetails.balance}
+                        value={transferForm.amount}
+                        onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })}
+                        className="form-input pl-8"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Maximum: {formatCurrency(userDetails.balance)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="form-label">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      value={transferForm.narration}
+                      onChange={(e) => setTransferForm({ ...transferForm, narration: e.target.value })}
+                      className="form-input"
+                      rows={3}
+                      placeholder="What's this transfer for?"
+                    />
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex">
+                      <span className="text-yellow-600 text-xl mr-3">⚠️</span>
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-800">Important Notice</h4>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Please verify the recipient account number carefully. Transfers cannot be reversed once processed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={transferLoading}
+                    className="btn-primary w-full"
+                  >
+                    {transferLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      'Send Money'
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Transaction History</h2>
+                <button
+                  onClick={fetchUserData}
+                  className="btn-primary"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              <div className="card">
+                <div className="overflow-x-auto">
+                  <table className="table">
+                    <thead className="table-header">
+                      <tr>
+                        <th className="table-cell font-medium text-gray-900">Date</th>
+                        <th className="table-cell font-medium text-gray-900">Type</th>
+                        <th className="table-cell font-medium text-gray-900">Account</th>
+                        <th className="table-cell font-medium text-gray-900">Amount</th>
+                        <th className="table-cell font-medium text-gray-900">Status</th>
+                        <th className="table-cell font-medium text-gray-900">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {transactions.map((transaction) => {
+                        const isOutgoing = transaction.senderAccount === userDetails.accountNumber;
+                        return (
+                          <tr key={transaction._id}>
+                            <td className="table-cell text-gray-600">
+                              {formatDate(transaction.createdAt)}
+                            </td>
+                            <td className="table-cell">
+                              <span className={`badge ${isOutgoing ? 'badge-error' : 'badge-success'}`}>
+                                {isOutgoing ? 'Sent' : 'Received'}
+                              </span>
+                            </td>
+                            <td className="table-cell text-gray-600">
+                              {isOutgoing ? transaction.receiverAccount : transaction.senderAccount}
+                            </td>
+                            <td className="table-cell">
+                              <span className={`font-medium ${isOutgoing ? 'text-red-600' : 'text-green-600'}`}>
+                                {isOutgoing ? '-' : '+'}
+                                {formatCurrency(transaction.amount)}
+                              </span>
+                            </td>
+                            <td className="table-cell">
+                              <span className={`badge ${getTransactionStatusClass(transaction.status)}`}>
+                                {transaction.status}
+                              </span>
+                            </td>
+                            <td className="table-cell text-gray-600">
+                              {transaction.narration || 'No description'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {transactions.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600">No transactions found</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Your transaction history will appear here once you start using your account.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

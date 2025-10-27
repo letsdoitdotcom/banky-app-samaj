@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "pages/api/**/*.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/pages/api/$1"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "JWT_SECRET": "@jwt_secret",
+    "RESEND_API_KEY": "@resend_api_key",
+    "FRONTEND_URL": "@frontend_url",
+    "DEFAULT_ADMIN_EMAIL": "@default_admin_email",
+    "DEFAULT_ADMIN_PASSWORD": "@default_admin_password",
+    "DEFAULT_ADMIN_NAME": "@default_admin_name"
+  }
+}
