@@ -53,19 +53,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { email, password } = value;
+    
+    console.log('Processing login for email:', email);
+    console.log('Email after toLowerCase:', email.toLowerCase());
+    console.log('Password length:', password.length);
 
     // Find admin and include password for verification
     const admin = await Admin.findOne({ email: email.toLowerCase() }).select('+password');
+    
+    console.log('Admin found:', !!admin);
+    if (admin) {
+      console.log('Admin email in DB:', admin.email);
+      console.log('Admin name:', admin.name);
+      console.log('Admin password hash length:', admin.password.length);
+    }
 
     if (!admin) {
+      console.log('❌ No admin found with email:', email.toLowerCase());
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
 
     // Check password
+    console.log('Comparing passwords...');
     const validPassword = await comparePassword(password, admin.password);
+    console.log('Password comparison result:', validPassword);
+    
     if (!validPassword) {
+      console.log('❌ Password comparison failed');
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
+    
+    console.log('✅ Login successful for:', admin.email);
 
     // Update last login
     admin.lastLogin = new Date();
