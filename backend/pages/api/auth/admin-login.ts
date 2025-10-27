@@ -37,9 +37,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     await connectDB();
 
+    // Log the request body for debugging
+    console.log('Admin login request body:', req.body);
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body keys:', Object.keys(req.body || {}));
+
     // Validate request body
     const { error, value } = adminLoginSchema.validate(req.body);
     if (error) {
+      console.log('Validation error details:', error.details);
       return res.status(400).json({ 
         error: 'Validation error', 
         details: error.details.map((d: any) => d.message) 

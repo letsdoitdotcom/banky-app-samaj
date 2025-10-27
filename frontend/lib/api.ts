@@ -91,6 +91,11 @@ export const adminAPI = {
 export const handleAPIError = (error: any) => {
   if (error.response?.data?.error) {
     return error.response.data.error;
+  } else if (error.response?.data?.details) {
+    // Handle Joi validation errors with details
+    return `Validation error: ${error.response.data.details.join(', ')}`;
+  } else if (error.response?.data?.message) {
+    return error.response.data.message;
   } else if (error.message) {
     return error.message;
   } else {
