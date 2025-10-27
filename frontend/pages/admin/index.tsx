@@ -37,7 +37,7 @@ interface Stats {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { admin, logout, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'transactions'>('dashboard');
   const [users, setUsers] = useState<User[]>([]);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
@@ -46,13 +46,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'admin') {
+    if (!isAuthenticated || !admin) {
       router.push('/admin-login');
       return;
     }
     
     fetchData();
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, admin, router]);
 
   const fetchData = async () => {
     try {
@@ -120,8 +120,8 @@ export default function AdminDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-600">{user?.email}</p>
+                <p className="text-sm font-medium text-gray-900">{admin?.name}</p>
+                <p className="text-xs text-gray-600">{admin?.email}</p>
               </div>
               <button
                 onClick={handleLogout}
