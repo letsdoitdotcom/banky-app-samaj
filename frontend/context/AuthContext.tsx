@@ -44,6 +44,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   loginAdmin: (email: string, password: string) => Promise<boolean>;
   adminLogin: (email: string, password: string) => Promise<boolean>;
+  setAdminSession: (token: string, admin: Admin) => void;
   register: (userData: RegisterData) => Promise<boolean>;
   logout: () => void;
   verifyEmail: (token: string) => Promise<boolean>;
@@ -204,6 +205,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     router.push('/');
   };
 
+  const setAdminSession = (authToken: string, adminData: Admin) => {
+    // Store auth data
+    localStorage.setItem('token', authToken);
+    localStorage.setItem('admin', JSON.stringify(adminData));
+    
+    setToken(authToken);
+    setAdmin(adminData);
+  };
+
   const refreshProfile = async () => {
     try {
       if (user && token) {
@@ -229,6 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     loginAdmin: adminLogin,
     adminLogin,
+    setAdminSession,
     register,
     logout,
     verifyEmail,

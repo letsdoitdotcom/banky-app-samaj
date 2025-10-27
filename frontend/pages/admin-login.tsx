@@ -13,7 +13,7 @@ interface AdminLoginData {
 
 export default function AdminLogin() {
   const router = useRouter();
-  const { loginAdmin } = useAuth();
+  const { setAdminSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -27,7 +27,7 @@ export default function AdminLogin() {
 
     try {
       const response = await adminAPI.login(data);
-      await loginAdmin(response.data.token, response.data.admin);
+      setAdminSession(response.data.token, response.data.admin);
       
       toast.success('Admin login successful!');
       router.push('/admin');
