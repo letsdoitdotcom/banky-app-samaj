@@ -9,11 +9,24 @@ export function authMiddleware(requiredRole?: 'user' | 'admin') {
   return (handler: (req: AuthenticatedRequest, res: NextApiResponse) => Promise<void>) => {
     return async (req: NextApiRequest, res: NextApiResponse) => {
       try {
+        // Handle CORS
+        const allowedOrigins = [
+          'http://localhost:3000',
+          'https://incomparable-macaron-eb6786.netlify.app',
+          process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        ];
+        
+        const origin = req.headers.origin;
+        if (origin && allowedOrigins.includes(origin)) {
+          res.setHeader('Access-Control-Allow-Origin', origin);
+        }
+        
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+
         // Handle CORS preflight
         if (req.method === 'OPTIONS') {
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
           return res.status(200).end();
         }
 
@@ -50,9 +63,20 @@ export function authMiddleware(requiredRole?: 'user' | 'admin') {
 
 // CORS middleware
 export function corsMiddleware(req: NextApiRequest, res: NextApiResponse, next: () => void) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://incomparable-macaron-eb6786.netlify.app',
+    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();

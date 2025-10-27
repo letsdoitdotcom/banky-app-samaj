@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -43,48 +43,48 @@ api.interceptors.response.use(
 // Auth API functions
 export const authAPI = {
   register: (userData: { name: string; email: string; password: string }) =>
-    api.post('/auth/register', userData),
+    api.post('/api/auth/register', userData),
     
   login: (credentials: { email: string; password: string }) =>
-    api.post('/auth/login', credentials),
+    api.post('/api/auth/login', credentials),
     
   adminLogin: (credentials: { email: string; password: string }) =>
-    api.post('/auth/admin-login', credentials),
+    api.post('/api/auth/admin-login', credentials),
     
   verifyEmail: (token: string) =>
-    api.post('/auth/verify-email', { token }),
+    api.post('/api/auth/verify-email', { token }),
 };
 
 // User API functions
 export const userAPI = {
-  getProfile: () => api.get('/user/profile'),
+  getProfile: () => api.get('/api/user/profile'),
   
-  getTransactions: () => api.get('/user/transactions'),
+  getTransactions: () => api.get('/api/user/transactions'),
   
   transfer: (transferData: {
     receiverAccount: string;
     amount: number;
     type: 'internal' | 'external';
     narration?: string;
-  }) => api.post('/user/transfer', transferData),
+  }) => api.post('/api/user/transfer', transferData),
   
   createTransfer: (transferData: {
     receiverAccount: string;
     amount: number;
     narration?: string;
-  }) => api.post('/user/transfer', transferData),
+  }) => api.post('/api/user/transfer', transferData),
 };
 
 // Admin API functions
 export const adminAPI = {
   login: (credentials: { email: string; password: string }) =>
-    api.post('/auth/admin-login', credentials),
+    api.post('/api/auth/admin-login', credentials),
     
-  getUsers: () => api.get('/admin/users'),
+  getUsers: () => api.get('/api/admin/users'),
   
-  approveUser: (userId: string) => api.post('/admin/approve-user', { userId }),
+  approveUser: (userId: string) => api.post('/api/admin/approve-user', { userId }),
   
-  getTransactions: () => api.get('/admin/transactions'),
+  getTransactions: () => api.get('/api/admin/transactions'),
 };
 
 // Generic error handler
