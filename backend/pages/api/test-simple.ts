@@ -19,20 +19,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     body: req.body
   });
 
-  if (req.method === 'POST') {
+  console.log('🧪 Test Simple API - Method:', req.method);
+
+  if (req.method === 'POST' || req.method === 'GET') {
     return res.status(200).json({
       success: true,
       message: 'Simple test API working!',
+      method: req.method,
       timestamp: new Date().toISOString(),
       environment: {
         hasEmailUser: !!process.env.EMAIL_USER,
         hasEmailPass: !!process.env.EMAIL_PASS,
         emailHost: process.env.EMAIL_HOST,
         emailPort: process.env.EMAIL_PORT,
-        frontendUrl: process.env.FRONTEND_URL
+        frontendUrl: process.env.FRONTEND_URL,
+        nodeEnv: process.env.NODE_ENV
       }
     });
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  console.log('❌ Method not allowed:', req.method);
+  return res.status(405).json({ 
+    error: 'Method not allowed',
+    method: req.method,
+    allowedMethods: ['GET', 'POST']
+  });
 }

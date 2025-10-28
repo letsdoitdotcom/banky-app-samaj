@@ -98,6 +98,18 @@ export default function AdminDashboard() {
     try {
       toast.loading('Testing API connection...', { id: 'test-api' });
       
+      // Try health endpoint first
+      console.log('🔍 Testing health endpoint...');
+      const healthResponse = await fetch('https://banky-app-samaj.vercel.app/api/health');
+      console.log('Health response:', healthResponse.status, healthResponse.statusText);
+      
+      if (healthResponse.ok) {
+        const healthData = await healthResponse.json();
+        console.log('✅ Health check passed:', healthData);
+      }
+      
+      // Then test our simple endpoint
+      console.log('🔍 Testing simple endpoint...');
       const response = await fetch('https://banky-app-samaj.vercel.app/api/test-simple', {
         method: 'POST',
         headers: {
@@ -106,14 +118,16 @@ export default function AdminDashboard() {
         body: JSON.stringify({ test: 'simple' })
       });
 
-      const data = await response.json();
+      console.log('Simple endpoint response:', response.status, response.statusText);
       
       if (response.ok) {
+        const data = await response.json();
         toast.success('API connection working!', { id: 'test-api' });
         console.log('✅ API test result:', data);
       } else {
-        toast.error(`API test failed: ${data.error}`, { id: 'test-api' });
-        console.error('❌ API test error:', data);
+        const errorText = await response.text();
+        toast.error(`API test failed: ${response.status}`, { id: 'test-api' });
+        console.error('❌ API test error:', errorText);
       }
     } catch (error) {
       console.error('API test error:', error);
