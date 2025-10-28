@@ -135,6 +135,36 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestEmailSimple = async () => {
+    const email = prompt('Enter email address to test:');
+    if (!email) return;
+
+    try {
+      toast.loading('Testing email configuration...', { id: 'test-email-simple' });
+      
+      const response = await fetch('https://banky-app-samaj.vercel.app/api/test-email-simple', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success('Email configuration working!', { id: 'test-email-simple' });
+        console.log('✅ Email config result:', data);
+      } else {
+        toast.error(`Email config issue: ${data.error}`, { id: 'test-email-simple' });
+        console.error('❌ Email config error:', data);
+      }
+    } catch (error) {
+      console.error('Email config test error:', error);
+      toast.error('Email configuration test failed', { id: 'test-email-simple' });
+    }
+  };
+
   const handleTestEmail = async () => {
     const email = prompt('Enter email address to test:');
     if (!email) return;
@@ -194,11 +224,18 @@ export default function AdminDashboard() {
                 🔗 Test API
               </button>
               <button
+                onClick={handleTestEmailSimple}
+                className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors mr-2"
+                title="Test Email (Simple)"
+              >
+                📧 Simple Email
+              </button>
+              <button
                 onClick={handleTestEmail}
                 className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
                 title="Test Email Configuration"
               >
-                📧 Test Email
+                📧 Full Email
               </button>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{admin?.name}</p>
