@@ -10,12 +10,21 @@ interface User {
   name: string;
   email: string;
   phone: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  idNumber: string;
   verified: boolean;
   emailVerified: boolean;
   approved: boolean;
   accountNumber?: string;
   balance: number;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface Transaction {
@@ -48,6 +57,7 @@ export default function AdminDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<Stats>({ emailUnverified: 0, emailVerified: 0, pending: 0, approved: 0, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Wait for auth to load before checking
@@ -93,6 +103,16 @@ export default function AdminDashboard() {
       const errorMessage = handleAPIError(error);
       toast.error(errorMessage);
     }
+  };
+
+  const toggleUserExpansion = (userId: string) => {
+    const newExpandedUsers = new Set(expandedUsers);
+    if (newExpandedUsers.has(userId)) {
+      newExpandedUsers.delete(userId);
+    } else {
+      newExpandedUsers.add(userId);
+    }
+    setExpandedUsers(newExpandedUsers);
   };
 
   const handleTestSimple = async () => {
@@ -493,25 +513,139 @@ export default function AdminDashboard() {
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {pendingUsers.map((user) => (
-                          <tr key={user._id}>
-                            <td className="table-cell font-medium text-gray-900">{user.name}</td>
-                            <td className="table-cell text-gray-600">{user.email}</td>
-                            <td className="table-cell text-gray-600">{user.phone}</td>
-                            <td className="table-cell text-gray-600">{formatDate(user.createdAt)}</td>
-                            <td className="table-cell">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                ✅ Email Verified
-                              </span>
-                            </td>
-                            <td className="table-cell">
-                              <button
-                                onClick={() => handleApproveUser(user._id)}
-                                className="btn-success text-sm"
-                              >
-                                Approve
-                              </button>
-                            </td>
-                          </tr>
+                          <React.Fragment key={user._id}>
+                            <tr className="hover:bg-gray-50">
+                              <td className="table-cell font-medium text-gray-900">{user.name}</td>
+                              <td className="table-cell text-gray-600">{user.email}</td>
+                              <td className="table-cell text-gray-600">{user.phone}</td>
+                              <td className="table-cell text-gray-600">{formatDate(user.createdAt)}</td>
+                              <td className="table-cell">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  ✅ Email Verified
+                                </span>
+                              </td>
+                              <td className="table-cell">
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => handleApproveUser(user._id)}
+                                    className="btn-success text-sm"
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => toggleUserExpansion(user._id)}
+                                    className="flex items-center space-x-1 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm"
+                                  >
+                                    <span>{expandedUsers.has(user._id) ? '▼' : '▶'}</span>
+                                    <span>Details</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            {expandedUsers.has(user._id) && (
+                              <tr>
+                                <td colSpan={6} className="p-0">
+                                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-l-4 border-green-400">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                      {/* Personal Information */}
+                                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                          <span className="text-blue-600 mr-2">👤</span>
+                                          Personal Information
+                                        </h4>
+                                        <div className="space-y-2 text-sm">
+                                          <div>
+                                            <span className="font-medium text-gray-600">Full Name:</span>
+                                            <span className="ml-2 text-gray-900">{user.name}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">Email:</span>
+                                            <span className="ml-2 text-gray-900">{user.email}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">Phone:</span>
+                                            <span className="ml-2 text-gray-900">{user.phone}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">ID Number:</span>
+                                            <span className="ml-2 text-gray-900 font-mono">{user.idNumber}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Address Information */}
+                                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                          <span className="text-green-600 mr-2">📍</span>
+                                          Address Information
+                                        </h4>
+                                        <div className="space-y-2 text-sm">
+                                          <div>
+                                            <span className="font-medium text-gray-600">Street:</span>
+                                            <span className="ml-2 text-gray-900">{user.address.street}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">City:</span>
+                                            <span className="ml-2 text-gray-900">{user.address.city}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">State:</span>
+                                            <span className="ml-2 text-gray-900">{user.address.state}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">ZIP Code:</span>
+                                            <span className="ml-2 text-gray-900">{user.address.zipCode}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">Country:</span>
+                                            <span className="ml-2 text-gray-900">{user.address.country}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Account Information */}
+                                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                          <span className="text-orange-600 mr-2">⏳</span>
+                                          Approval Status
+                                        </h4>
+                                        <div className="space-y-2 text-sm">
+                                          <div>
+                                            <span className="font-medium text-gray-600">Email Verified:</span>
+                                            <span className="ml-2 text-green-600">✅ Yes</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">Account Status:</span>
+                                            <span className="ml-2 text-orange-600">⏳ Pending Approval</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">Registered:</span>
+                                            <span className="ml-2 text-gray-900">{formatDate(user.createdAt)}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="mt-6 flex justify-end space-x-3">
+                                      <button
+                                        onClick={() => handleApproveUser(user._id)}
+                                        className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
+                                      >
+                                        ✅ Approve User
+                                      </button>
+                                      <button
+                                        onClick={() => toggleUserExpansion(user._id)}
+                                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                                      >
+                                        Collapse Details
+                                      </button>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>
@@ -533,19 +667,140 @@ export default function AdminDashboard() {
                         <th className="table-cell font-medium text-gray-900">Account Number</th>
                         <th className="table-cell font-medium text-gray-900">Balance</th>
                         <th className="table-cell font-medium text-gray-900">Status</th>
+                        <th className="table-cell font-medium text-gray-900">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {users.map((user) => (
-                        <tr key={user._id}>
-                          <td className="table-cell font-medium text-gray-900">{user.name}</td>
-                          <td className="table-cell text-gray-600">{user.email}</td>
-                          <td className="table-cell text-gray-600">{user.accountNumber}</td>
-                          <td className="table-cell text-gray-600">{formatCurrency(user.balance)}</td>
-                          <td className="table-cell">
-                            <span className="badge badge-success">Active</span>
-                          </td>
-                        </tr>
+                        <React.Fragment key={user._id}>
+                          <tr className="hover:bg-gray-50">
+                            <td className="table-cell font-medium text-gray-900">{user.name}</td>
+                            <td className="table-cell text-gray-600">{user.email}</td>
+                            <td className="table-cell text-gray-600 font-mono">{user.accountNumber}</td>
+                            <td className="table-cell text-gray-600">{formatCurrency(user.balance)}</td>
+                            <td className="table-cell">
+                              <span className="badge badge-success">Active</span>
+                            </td>
+                            <td className="table-cell">
+                              <button
+                                onClick={() => toggleUserExpansion(user._id)}
+                                className="flex items-center space-x-1 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm"
+                              >
+                                <span>{expandedUsers.has(user._id) ? '▼' : '▶'}</span>
+                                <span>Details</span>
+                              </button>
+                            </td>
+                          </tr>
+                          {expandedUsers.has(user._id) && (
+                            <tr>
+                              <td colSpan={6} className="p-0">
+                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-l-4 border-blue-400">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {/* Personal Information */}
+                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                        <span className="text-blue-600 mr-2">👤</span>
+                                        Personal Information
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <div>
+                                          <span className="font-medium text-gray-600">Full Name:</span>
+                                          <span className="ml-2 text-gray-900">{user.name}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Email:</span>
+                                          <span className="ml-2 text-gray-900">{user.email}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Phone:</span>
+                                          <span className="ml-2 text-gray-900">{user.phone}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">ID Number:</span>
+                                          <span className="ml-2 text-gray-900 font-mono">{user.idNumber}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Address Information */}
+                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                        <span className="text-green-600 mr-2">📍</span>
+                                        Address Information
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <div>
+                                          <span className="font-medium text-gray-600">Street:</span>
+                                          <span className="ml-2 text-gray-900">{user.address.street}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">City:</span>
+                                          <span className="ml-2 text-gray-900">{user.address.city}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">State:</span>
+                                          <span className="ml-2 text-gray-900">{user.address.state}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">ZIP Code:</span>
+                                          <span className="ml-2 text-gray-900">{user.address.zipCode}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Country:</span>
+                                          <span className="ml-2 text-gray-900">{user.address.country}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Account Information */}
+                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                        <span className="text-purple-600 mr-2">🏦</span>
+                                        Account Information
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <div>
+                                          <span className="font-medium text-gray-600">Account Number:</span>
+                                          <span className="ml-2 text-gray-900 font-mono">{user.accountNumber}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Balance:</span>
+                                          <span className="ml-2 text-green-600 font-semibold">{formatCurrency(user.balance)}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Email Verified:</span>
+                                          <span className={`ml-2 ${user.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
+                                            {user.emailVerified ? '✅ Yes' : '❌ No'}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Account Status:</span>
+                                          <span className={`ml-2 ${user.approved ? 'text-green-600' : 'text-yellow-600'}`}>
+                                            {user.approved ? '✅ Approved' : '⏳ Pending'}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Registered:</span>
+                                          <span className="ml-2 text-gray-900">{formatDate(user.createdAt)}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Action Buttons */}
+                                  <div className="mt-6 flex justify-end space-x-3">
+                                    <button
+                                      onClick={() => toggleUserExpansion(user._id)}
+                                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                                    >
+                                      Collapse Details
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
