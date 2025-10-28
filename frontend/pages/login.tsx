@@ -6,13 +6,12 @@ import { useAuth } from '../context/AuthContext';
 export default function Login() {
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    isAdmin: false
+    password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login, loginAdmin, isAuthenticated, user, admin, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated, user, admin, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,10 +28,10 @@ export default function Login() {
   }, [isAuthenticated, user, admin, authLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
@@ -42,11 +41,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      if (formData.isAdmin) {
-        await loginAdmin(formData.email, formData.password);
-      } else {
-        await login(formData.email, formData.password);
-      }
+      await login(formData.email, formData.password);
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
@@ -77,20 +72,6 @@ export default function Login() {
                 {error}
               </div>
             )}
-
-            {/* Admin Toggle */}
-            <div className="flex items-center justify-center">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="isAdmin"
-                  checked={formData.isAdmin}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-700">Admin Login</span>
-              </label>
-            </div>
 
             {/* Email */}
             <div>
@@ -150,15 +131,6 @@ export default function Login() {
               Create Account
             </Link>
           </p>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h3 className="font-medium text-yellow-800 mb-2">Demo Credentials</h3>
-          <div className="text-sm text-yellow-700">
-            <p><strong>User:</strong> user@demo.com / password123</p>
-            <p><strong>Admin:</strong> admin@demo.com / admin123</p>
-          </div>
         </div>
       </div>
     </div>

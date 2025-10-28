@@ -13,14 +13,14 @@ interface User {
   balance: number;
   verified: boolean;
   approved: boolean;
-  address: {
+  address?: {
     street: string;
     city: string;
     state: string;
     zipCode: string;
     country: string;
   };
-  identity: {
+  identity?: {
     type: string;
     number: string;
   };
@@ -322,39 +322,45 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-600">Phone Number</p>
                       <p className="font-medium text-gray-900">{userDetails.phone}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Identity Document</p>
-                      <p className="font-medium text-gray-900">
-                        {userDetails.identity.type}: {userDetails.identity.number}
-                      </p>
-                    </div>
+                    {userDetails.identity && (
+                      <div>
+                        <p className="text-sm text-gray-600">Identity Document</p>
+                        <p className="font-medium text-gray-900">
+                          {userDetails.identity.type}: {userDetails.identity.number}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="card">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-600">Street Address</p>
-                      <p className="font-medium text-gray-900">{userDetails.address.street}</p>
+                  {userDetails.address ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Street Address</p>
+                        <p className="font-medium text-gray-900">{userDetails.address.street}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">City</p>
+                        <p className="font-medium text-gray-900">{userDetails.address.city}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">State / Province</p>
+                        <p className="font-medium text-gray-900">{userDetails.address.state}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">ZIP Code / Postal Code</p>
+                        <p className="font-medium text-gray-900">{userDetails.address.zipCode}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Country</p>
+                        <p className="font-medium text-gray-900">{userDetails.address.country}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">City</p>
-                      <p className="font-medium text-gray-900">{userDetails.address.city}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">State / Province</p>
-                      <p className="font-medium text-gray-900">{userDetails.address.state}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">ZIP Code / Postal Code</p>
-                      <p className="font-medium text-gray-900">{userDetails.address.zipCode}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Country</p>
-                      <p className="font-medium text-gray-900">{userDetails.address.country}</p>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className="text-gray-500 italic">Address information not available</p>
+                  )}
                 </div>
               </div>
 
