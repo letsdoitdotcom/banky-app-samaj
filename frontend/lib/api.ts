@@ -85,6 +85,8 @@ export const adminAPI = {
   approveUser: (userId: string) => api.post('/api/admin/approve-user', { userId }),
   
   getTransactions: () => api.get('/api/admin/transactions'),
+  
+  testEmail: (email: string) => api.post('/api/admin/test-email', { email }),
 };
 
 // Generic error handler

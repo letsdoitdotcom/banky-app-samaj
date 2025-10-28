@@ -99,23 +99,17 @@ export default function AdminDashboard() {
     if (!email) return;
 
     try {
-      const response = await fetch('/api/admin/test-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ email })
-      });
-
-      if (response.ok) {
-        toast.success('Test email sent successfully!');
-      } else {
-        toast.error('Failed to send test email');
-      }
+      toast.loading('Sending test email...', { id: 'test-email' });
+      
+      const response = await adminAPI.testEmail(email);
+      
+      toast.success('Test email sent successfully!', { id: 'test-email' });
+      console.log('✅ Email test result:', response.data);
+      
     } catch (error) {
       console.error('Test email error:', error);
-      toast.error('Failed to send test email');
+      const errorMessage = handleAPIError(error);
+      toast.error(`Failed to send test email: ${errorMessage}`, { id: 'test-email' });
     }
   };
 
