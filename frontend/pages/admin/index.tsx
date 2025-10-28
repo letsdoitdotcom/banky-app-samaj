@@ -94,6 +94,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestSimple = async () => {
+    try {
+      toast.loading('Testing API connection...', { id: 'test-api' });
+      
+      const response = await fetch('https://banky-app-samaj.vercel.app/api/test-simple', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ test: 'simple' })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success('API connection working!', { id: 'test-api' });
+        console.log('✅ API test result:', data);
+      } else {
+        toast.error(`API test failed: ${data.error}`, { id: 'test-api' });
+        console.error('❌ API test error:', data);
+      }
+    } catch (error) {
+      console.error('API test error:', error);
+      toast.error('API connection failed', { id: 'test-api' });
+    }
+  };
+
   const handleTestEmail = async () => {
     const email = prompt('Enter email address to test:');
     if (!email) return;
@@ -145,6 +172,13 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={handleTestSimple}
+                className="px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors mr-2"
+                title="Test API Connection"
+              >
+                🔗 Test API
+              </button>
               <button
                 onClick={handleTestEmail}
                 className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"

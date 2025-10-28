@@ -3,6 +3,14 @@ import { sendTestEmail } from '../../../lib/emailService';
 import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  console.log('📋 Test email API called:', {
+    method: req.method,
+    hasUser: !!req.user,
+    userRole: req.user?.role,
+    userId: req.user?._id,
+    body: req.body
+  });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -14,7 +22,14 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Email address is required' });
     }
 
-    console.log('🧪 Testing email configuration...');
+    console.log('🧪 Testing email configuration for:', email);
+    console.log('📧 Email environment variables:', {
+      hasEmailUser: !!process.env.EMAIL_USER,
+      hasEmailPass: !!process.env.EMAIL_PASS,
+      emailHost: process.env.EMAIL_HOST,
+      emailPort: process.env.EMAIL_PORT
+    });
+    
     const result = await sendTestEmail(email);
 
     res.status(200).json({
