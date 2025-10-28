@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { AutocompleteInput, FormattedInput } from '../components/FormInputs';
+import { PasswordInput } from '../components/PasswordInput';
 import { 
   formatPhoneNumber, 
   formatSSN, 
@@ -201,6 +202,7 @@ export default function Register() {
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [loading, setLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   const { register, isAuthenticated, user } = useAuth();
   const router = useRouter();
@@ -335,12 +337,20 @@ export default function Register() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => prev + 1);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentStep(prev => prev + 1);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
   const handleBack = () => {
-    setCurrentStep(prev => prev - 1);
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentStep(prev => prev - 1);
+      setIsTransitioning(false);
+    }, 150);
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -480,29 +490,27 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Password *</label>
-                <input
-                  type="password"
+                <PasswordInput
+                  label="Password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`form-input ${errors.password ? 'form-error' : ''}`}
                   placeholder="Min. 8 characters"
+                  required
+                  error={errors.password}
                 />
-                {errors.password && <p className="error-text">{errors.password}</p>}
               </div>
 
               <div>
-                <label className="form-label">Confirm Password *</label>
-                <input
-                  type="password"
+                <PasswordInput
+                  label="Confirm Password"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`form-input ${errors.confirmPassword ? 'form-error' : ''}`}
                   placeholder="Confirm password"
+                  required
+                  error={errors.confirmPassword}
                 />
-                {errors.confirmPassword && <p className="error-text">{errors.confirmPassword}</p>}
               </div>
             </div>
 
@@ -611,16 +619,17 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <FormattedInput
-                  label="ZIP/Postal Code"
+                <label className="label">ZIP/Postal Code *</label>
+                <input
+                  type="text"
+                  name="zipCode"
                   value={formData.zipCode}
-                  onChange={(value) => handleFormattedChange('zipCode', value)}
-                  formatter={formatZipCode}
-                  placeholder="12345-6789"
-                  required
-                  error={errors.zipCode}
+                  onChange={handleChange}
+                  className={`input ${errors.zipCode ? 'input-error' : ''}`}
+                  placeholder="10001"
                   maxLength={10}
                 />
+                {errors.zipCode && <p className="form-error">{errors.zipCode}</p>}
               </div>
 
               <div>
@@ -1461,7 +1470,9 @@ export default function Register() {
         {/* Registration Form */}
         <div className="card">
           <form onSubmit={currentStep === 6 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
-            {renderStepContent()}
+            <div className={`form-step ${isTransitioning ? 'transitioning' : ''}`}>
+              {renderStepContent()}
+            </div>
 
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-6 mt-6 border-t border-gray-200">
