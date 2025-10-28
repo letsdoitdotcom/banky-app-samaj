@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDB from '../../../lib/db';
 import User from '../../../models/User';
 import { comparePassword, generateToken } from '../../../lib/auth';
+import { authRateLimit } from '../../../middleware/rateLimit';
 import Joi from 'joi';
 
 // Validation schema
@@ -33,6 +34,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Apply rate limiting for login attempts
+  return new Promise<void>((resolve, reject) => {
+    authRateLimit(req, res, async () => {
+      try {
+        await handleLogin(req, res);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
+
+async function handleLogin(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     await connectDB();

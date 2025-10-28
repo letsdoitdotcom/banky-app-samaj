@@ -2,7 +2,13 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development-only';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required for security');
+}
+
+const jwtSecret: string = JWT_SECRET;
 
 export interface JWTPayload {
   userId: string; // MongoDB ObjectId as string
@@ -13,13 +19,14 @@ export interface JWTPayload {
 
 // Generate JWT token
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, jwtSecret, { expiresIn: '7d' });
 }
 
 // Verify JWT token
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded as JWTPayload;
   } catch (error) {
     console.error('Token verification failed:', error);
     return null;

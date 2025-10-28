@@ -3,6 +3,8 @@ import connectDB from '../../../lib/db';
 import User from '../../../models/User';
 import Transaction from '../../../models/Transaction';
 import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
+import { transferPerUserRateLimit } from '../../../middleware/rateLimit';
+import { sanitizeAccountNumber, sanitizeNarration } from '../../../utils/sanitize';
 import Joi from 'joi';
 
 // Validation schema
@@ -17,6 +19,21 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Apply rate limiting for transfers
+  return new Promise<void>((resolve, reject) => {
+    transferPerUserRateLimit(req, res, async () => {
+      try {
+        await handleTransfer(req, res);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
+
+async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
 
   try {
     await connectDB();
@@ -39,8 +56,12 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     const { receiverAccount, amount, type, narration } = value;
 
+    // Sanitize inputs
+    const sanitizedReceiverAccount = sanitizeAccountNumber(receiverAccount);
+    const sanitizedNarration = sanitizeNarration(narration || '');
+
     // Check if trying to transfer to same account
-    if (receiverAccount === userAccountNumber) {
+    if (sanitizedReceiverAccount === userAccountNumber) {
       return res.status(400).json({ error: 'Cannot transfer to your own account' });
     }
 
@@ -56,45 +77,119 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       }
     }
 
-    // Get current user and check balance
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // Use MongoDB session for atomic transaction to prevent race conditions
+    const session = await User.startSession();
+    
+    try {
+      await session.withTransaction(async () => {
+        // Get current user and check balance (within transaction)
+        const user = await User.findById(userId).session(session);
+        if (!user) {
+          throw new Error('User not found');
+        }
 
-    // Check if sufficient balance (for simulation purposes)
-    if (user.balance < amount) {
-      return res.status(400).json({ 
-        error: 'Insufficient balance',
-        currentBalance: user.balance,
-        requestedAmount: amount,
+        // Check if sufficient balance
+        if (user.balance < amount) {
+          throw new Error(`Insufficient balance. Available: ${user.balance}, Requested: ${amount}`);
+        }
+
+        // For internal transfers, update both balances atomically
+        if (type === 'internal') {
+          const receiverUser = await User.findOne({ 
+            accountNumber: sanitizedReceiverAccount, 
+            approved: true 
+          }).session(session);
+
+          if (!receiverUser) {
+            throw new Error('Receiver account not found or not approved');
+          }
+
+          // Deduct from sender
+          await User.findByIdAndUpdate(
+            userId,
+            { $inc: { balance: -amount } },
+            { session }
+          );
+
+          // Add to receiver
+          await User.findByIdAndUpdate(
+            receiverUser._id,
+            { $inc: { balance: amount } },
+            { session }
+          );
+
+          // Create completed transaction record
+          const transaction = new Transaction({
+            senderId: userId,
+            senderAccount: userAccountNumber,
+            receiverAccount: sanitizedReceiverAccount,
+            amount,
+            type,
+            status: 'completed',
+            narration: sanitizedNarration,
+            completedAt: new Date(),
+          });
+
+          await transaction.save({ session });
+          return transaction;
+        } else {
+          // External transfer - just deduct and create pending transaction
+          await User.findByIdAndUpdate(
+            userId,
+            { $inc: { balance: -amount } },
+            { session }
+          );
+
+          const transaction = new Transaction({
+            senderId: userId,
+            senderAccount: userAccountNumber,
+            receiverAccount: sanitizedReceiverAccount,
+            amount,
+            type,
+            status: 'pending',
+            narration: sanitizedNarration,
+          });
+
+          await transaction.save({ session });
+          return transaction;
+        }
       });
+    } catch (error: any) {
+      return res.status(400).json({ 
+        error: error.message || 'Transaction failed'
+      });
+    } finally {
+      await session.endSession();
     }
 
-    // Create transaction record
-    const transaction = new Transaction({
+    // Get the updated transaction for response
+    const latestTransaction = await Transaction.findOne({
       senderId: userId,
       senderAccount: userAccountNumber,
-      receiverAccount,
+      receiverAccount: sanitizedReceiverAccount,
       amount,
-      type,
-      status: 'pending',
-      narration: narration || '',
-    });
+    }).sort({ createdAt: -1 });
 
-    await transaction.save();
+    if (!latestTransaction) {
+      return res.status(500).json({ error: 'Transaction processing error' });
+    }
+
+    const statusMessage = type === 'internal' 
+      ? 'Transfer completed successfully!'
+      : 'Transfer initiated successfully. Status: Pending External Processing.';
 
     res.status(201).json({
-      message: 'Transfer initiated successfully. Status: Pending Confirmation.',
+      message: statusMessage,
       transaction: {
-        id: transaction._id,
+        id: latestTransaction._id,
         senderAccount: userAccountNumber,
-        receiverAccount,
+        receiverAccount: sanitizedReceiverAccount,
         amount,
         type,
-        status: 'pending',
-        narration: narration || '',
-        createdAt: transaction.createdAt,
+        status: latestTransaction.status,
+        narration: sanitizedNarration,
+        createdAt: latestTransaction.createdAt,
+        completedAt: latestTransaction.completedAt,
       },
     });
 

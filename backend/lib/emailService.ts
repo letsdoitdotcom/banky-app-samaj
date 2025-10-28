@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+import { sanitizeEmail, sanitizeName, sanitizeUrl, escapeHtml } from '../utils/sanitize';
 type Transporter = any;
 
 // Email transporter configuration
@@ -28,8 +29,14 @@ export const sendVerificationEmail = async (
   name: string, 
   verificationToken: string
 ) => {
+  // Sanitize inputs to prevent injection attacks
+  const sanitizedEmail = sanitizeEmail(email);
+  const sanitizedName = sanitizeName(name);
+  const sanitizedToken = verificationToken.replace(/[^a-zA-Z0-9]/g, ''); // Only allow alphanumeric
+  
   const transporter = createTransporter();
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+  const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
+  const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
   
   const htmlContent = `
     <!DOCTYPE html>
@@ -59,7 +66,7 @@ export const sendVerificationEmail = async (
         </div>
         
         <div class="content">
-          <h2 style="color: #1f2937; margin-bottom: 16px;">Hello ${name}!</h2>
+          <h2 style="color: #1f2937; margin-bottom: 16px;">Hello ${escapeHtml(sanitizedName)}!</h2>
           
           <p style="color: #4b5563; margin-bottom: 24px;">
             Thank you for registering with BankyApp! To complete your registration and make your account 
@@ -117,13 +124,13 @@ export const sendVerificationEmail = async (
           
           <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
             If the button doesn't work, copy and paste this link into your browser:<br>
-            <span style="word-break: break-all; color: #667eea;">${verificationUrl}</span>
+            <span style="word-break: break-all; color: #667eea;">${escapeHtml(verificationUrl)}</span>
           </p>
         </div>
         
         <div class="footer">
           <p>© 2024 BankyApp - Professional Banking Simulation Platform</p>
-          <p>This email was sent to ${email}. If you didn't request this, please ignore this email.</p>
+          <p>This email was sent to ${escapeHtml(sanitizedEmail)}. If you didn't request this, please ignore this email.</p>
         </div>
       </div>
     </body>
@@ -132,7 +139,7 @@ export const sendVerificationEmail = async (
 
   const mailOptions = {
     from: `"BankyApp - Email Verification" <${process.env.EMAIL_USER}>`,
-    to: email,
+    to: sanitizedEmail,
     subject: '🏦 Verify Your BankyApp Email Address',
     html: htmlContent,
   };
@@ -153,8 +160,14 @@ export const sendApprovalEmail = async (
   name: string, 
   accountNumber: string
 ) => {
+  // Sanitize inputs to prevent injection attacks
+  const sanitizedEmail = sanitizeEmail(email);
+  const sanitizedName = sanitizeName(name);
+  const sanitizedAccountNumber = accountNumber.replace(/[^0-9]/g, '').substring(0, 10); // Only digits, max 10 chars
+  
   const transporter = createTransporter();
-  const loginUrl = `${process.env.FRONTEND_URL}/login`;
+  const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
+  const loginUrl = `${baseUrl}/login`;
   
   const htmlContent = `
     <!DOCTYPE html>
@@ -182,7 +195,7 @@ export const sendApprovalEmail = async (
         </div>
         
         <div class="content">
-          <h2 style="color: #1f2937; margin-bottom: 16px;">Congratulations ${name}!</h2>
+          <h2 style="color: #1f2937; margin-bottom: 16px;">Congratulations ${escapeHtml(sanitizedName)}!</h2>
           
           <p style="color: #4b5563; margin-bottom: 24px;">
             Great news! Your BankyApp account has been approved by our admin team. 
