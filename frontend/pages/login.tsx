@@ -12,18 +12,21 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login, loginAdmin, isAuthenticated, user, admin } = useAuth();
+  const { login, loginAdmin, isAuthenticated, user, admin, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    // Don't redirect if we're still loading auth state
+    if (authLoading) return;
+    
     if (isAuthenticated) {
       if (admin) {
-        router.push('/admin/dashboard');
+        router.push('/admin');
       } else if (user) {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, user, admin, router]);
+  }, [isAuthenticated, user, admin, authLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;

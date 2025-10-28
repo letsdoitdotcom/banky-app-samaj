@@ -46,7 +46,7 @@ interface TransferForm {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'transfer' | 'history'>('overview');
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -60,13 +60,25 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'user') {
+    // Don't redirect if we're still loading auth state
+    if (authLoading) return;
+    
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     
-    fetchUserData();
-  }, [isAuthenticated, user, router]);
+    // Check if this is a regular user (not admin)
+    if (user && user.role === 'admin') {
+      router.push('/admin');
+      return;
+    }
+    
+    // If we have a user, fetch their data
+    if (user) {
+      fetchUserData();
+    }
+  }, [isAuthenticated, user, authLoading, router]);
 
   const fetchUserData = async () => {
     try {

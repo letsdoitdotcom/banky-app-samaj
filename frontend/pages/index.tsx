@@ -5,10 +5,13 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 export default function Home() {
-  const { isAuthenticated, user, admin } = useAuth();
+  const { isAuthenticated, user, admin, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    // Don't redirect if we're still loading auth state
+    if (authLoading) return;
+    
     if (isAuthenticated) {
       if (admin) {
         router.push('/admin');
@@ -16,7 +19,7 @@ export default function Home() {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, user, admin, router]);
+  }, [isAuthenticated, user, admin, authLoading, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
