@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../context/AuthContext';
 import { adminAPI, userAPI, formatCurrency, formatDate, getTransactionStatusClass, handleAPIError } from '../../lib/api';
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <Link href="/admin" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">⚡</span>
               </div>
@@ -214,8 +215,11 @@ export default function AdminDashboard() {
                 <h1 className="text-xl font-bold text-gray-900">BankyApp Admin</h1>
                 <p className="text-sm text-gray-600">Administrator Dashboard</p>
               </div>
-            </div>
+            </Link>
             <div className="flex items-center space-x-4">
+              <Link href="/" className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mr-2">
+                🏠 Home
+              </Link>
               <button
                 onClick={handleTestSimple}
                 className="px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors mr-2"
