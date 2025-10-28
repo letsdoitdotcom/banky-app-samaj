@@ -11,9 +11,18 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {
     await connectDB();
 
-    // Get all pending users (not approved yet, regardless of verification)
+    // Get all users who have verified email but are not approved yet (eligible for approval)
     const pendingUsers = await User.find({ 
+      emailVerified: true,
       approved: false 
+    })
+    .select('-password -verificationToken')
+    .sort({ createdAt: 1 })
+    .lean();
+
+    // Get users who registered but haven't verified email yet
+    const unverifiedUsers = await User.find({ 
+      emailVerified: false
     })
     .select('-password -verificationToken')
     .sort({ createdAt: 1 })
@@ -32,12 +41,20 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         $group: {
           _id: null,
           total: { $sum: 1 },
-          unverified: {
-            $sum: { $cond: [{ $eq: ["$verified", false] }, 1, 0] }
+          emailUnverified: {
+            $sum: { $cond: [{ $eq: ["$emailVerified", false] }, 1, 0] }
+          },
+          emailVerified: {
+            $sum: { $cond: [{ $eq: ["$emailVerified", true] }, 1, 0] }
           },
           pending: {
             $sum: { 
-              $cond: [{ $eq: ["$approved", false] }, 1, 0] 
+              $cond: [{ 
+                $and: [
+                  { $eq: ["$emailVerified", true] },
+                  { $eq: ["$approved", false] }
+                ]
+              }, 1, 0] 
             }
           },
           approved: {
@@ -47,10 +64,11 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       }
     ]);
 
-    const userStats = stats[0] || { total: 0, unverified: 0, pending: 0, approved: 0 };
+    const userStats = stats[0] || { total: 0, emailUnverified: 0, emailVerified: 0, pending: 0, approved: 0 };
 
     res.status(200).json({
       pendingUsers,
+      unverifiedUsers,
       approvedUsers,
       stats: userStats,
     });

@@ -10,6 +10,7 @@ interface User {
   email: string;
   phone: string;
   verified: boolean;
+  emailVerified: boolean;
   approved: boolean;
   accountNumber?: string;
   balance: number;
@@ -29,7 +30,8 @@ interface Transaction {
 }
 
 interface Stats {
-  unverified: number;
+  emailUnverified: number;
+  emailVerified: number;
   pending: number;
   approved: number;
   total: number;
@@ -37,15 +39,19 @@ interface Stats {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { admin, logout, isAuthenticated } = useAuth();
+  const { admin, logout, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'transactions'>('dashboard');
   const [users, setUsers] = useState<User[]>([]);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+  const [unverifiedUsers, setUnverifiedUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [stats, setStats] = useState<Stats>({ unverified: 0, pending: 0, approved: 0, total: 0 });
+  const [stats, setStats] = useState<Stats>({ emailUnverified: 0, emailVerified: 0, pending: 0, approved: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to load before checking
+    if (isLoading) return;
+    
     if (!isAuthenticated || !admin) {
       router.push('/admin-login');
       return;
@@ -65,7 +71,8 @@ export default function AdminDashboard() {
       const usersData = usersResponse.data;
       setUsers(usersData.approvedUsers || []);
       setPendingUsers(usersData.pendingUsers || []);
-      setStats(usersData.stats || { unverified: 0, pending: 0, approved: 0, total: 0 });
+      setUnverifiedUsers(usersData.unverifiedUsers || []);
+      setStats(usersData.stats || { emailUnverified: 0, emailVerified: 0, pending: 0, approved: 0, total: 0 });
 
       setTransactions(transactionsResponse.data.transactions || []);
     } catch (error) {
@@ -178,7 +185,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
               
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="card">
                   <div className="flex items-center">
                     <div className="p-3 rounded-full bg-blue-100">
@@ -187,6 +194,18 @@ export default function AdminDashboard() {
                     <div className="ml-4">
                       <p className="text-sm text-gray-600">Total Users</p>
                       <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-red-100">
+                      <span className="text-red-600 text-xl">📧</span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm text-gray-600">Email Unverified</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats.emailUnverified}</p>
                     </div>
                   </div>
                 </div>
@@ -290,12 +309,18 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* Pending Users */}
-              {pendingUsers.length > 0 && (
+              {/* Email Unverified Users */}
+              {unverifiedUsers.length > 0 && (
                 <div className="card">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Pending Approvals ({pendingUsers.length})
+                    ❌ Email Unverified Users ({unverifiedUsers.length})
                   </h3>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Note:</strong> These users have registered but haven't verified their email yet. 
+                      Only email-verified users are eligible for approval.
+                    </p>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="table">
                       <thead className="table-header">
@@ -304,6 +329,50 @@ export default function AdminDashboard() {
                           <th className="table-cell font-medium text-gray-900">Email</th>
                           <th className="table-cell font-medium text-gray-900">Phone</th>
                           <th className="table-cell font-medium text-gray-900">Registered</th>
+                          <th className="table-cell font-medium text-gray-900">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {unverifiedUsers.map((user) => (
+                          <tr key={user._id}>
+                            <td className="table-cell font-medium text-gray-900">{user.name}</td>
+                            <td className="table-cell text-gray-600">{user.email}</td>
+                            <td className="table-cell text-gray-600">{user.phone}</td>
+                            <td className="table-cell text-gray-600">{formatDate(user.createdAt)}</td>
+                            <td className="table-cell">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Email Not Verified
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Pending Users (Email Verified, Awaiting Approval) */}
+              {pendingUsers.length > 0 && (
+                <div className="card">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    ⏳ Email Verified - Pending Approval ({pendingUsers.length})
+                  </h3>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-green-800">
+                      <strong>Ready for Approval:</strong> These users have verified their email addresses 
+                      and are eligible for admin approval.
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="table">
+                      <thead className="table-header">
+                        <tr>
+                          <th className="table-cell font-medium text-gray-900">Name</th>
+                          <th className="table-cell font-medium text-gray-900">Email</th>
+                          <th className="table-cell font-medium text-gray-900">Phone</th>
+                          <th className="table-cell font-medium text-gray-900">Registered</th>
+                          <th className="table-cell font-medium text-gray-900">Email Status</th>
                           <th className="table-cell font-medium text-gray-900">Actions</th>
                         </tr>
                       </thead>
@@ -314,6 +383,11 @@ export default function AdminDashboard() {
                             <td className="table-cell text-gray-600">{user.email}</td>
                             <td className="table-cell text-gray-600">{user.phone}</td>
                             <td className="table-cell text-gray-600">{formatDate(user.createdAt)}</td>
+                            <td className="table-cell">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ✅ Email Verified
+                              </span>
+                            </td>
                             <td className="table-cell">
                               <button
                                 onClick={() => handleApproveUser(user._id)}

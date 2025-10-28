@@ -15,6 +15,7 @@ export interface IUser extends Document {
   };
   idNumber: string;
   verified: boolean;
+  emailVerified: boolean;
   approved: boolean;
   accountNumber?: string;
   balance: number;
@@ -66,6 +67,10 @@ const UserSchema = new Schema<IUser>({
     unique: true
   },
   verified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerified: {
     type: Boolean,
     default: false
   },

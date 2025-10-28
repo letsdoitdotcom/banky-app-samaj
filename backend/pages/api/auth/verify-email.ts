@@ -48,21 +48,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Check if already verified
-    if (user.verified) {
+    if (user.emailVerified) {
       return res.status(400).json({ 
-        error: 'Email is already verified. Your account is pending admin approval.' 
+        error: 'Email is already verified. Your account is eligible for admin approval.' 
       });
     }
 
-    // Update user as verified and clear verification token
-    user.verified = true;
+    // Update user as email verified and clear verification token
+    user.emailVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
     await user.save();
 
     res.status(200).json({
-      message: 'Email verified successfully! Your account is now pending admin approval. You will receive an email once approved.',
-      verified: true,
+      message: 'Email verified successfully! Your account is now eligible for admin review. You will receive an email once approved.',
+      emailVerified: true,
     });
 
   } catch (error) {

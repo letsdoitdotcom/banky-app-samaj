@@ -29,26 +29,37 @@ export default function VerificationPending() {
           </h1>
           
           <p className="text-gray-600 mb-6">
-            Thank you for registering with BankyApp. Your account has been created 
-            and is currently pending verification.
+            Thank you for registering with BankyApp! We've sent a verification email to your inbox. 
+            <strong>Please verify your email to make your account eligible for approval.</strong>
           </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-blue-900 mb-2">What happens next?</h3>
-            <div className="text-blue-800 text-sm space-y-2">
+            <h3 className="font-medium text-blue-900 mb-3">📧 Email Verification Required</h3>
+            <div className="text-blue-800 text-sm space-y-3">
               <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                <p>Check your email for a verification link</p>
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+                <p><strong>Check your email</strong> for our verification message (check spam folder too)</p>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                <p>Our admin team will review your application</p>
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+                <p><strong>Click the verification link</strong> to confirm your email address</p>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                <p>You'll receive an approval notification within 24-48 hours</p>
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
+                <p><strong>Admin review</strong> - Your account becomes eligible for approval</p>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</div>
+                <p><strong>Start banking</strong> with your $1,000 welcome balance!</p>
               </div>
             </div>
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+            <p className="text-yellow-800 text-xs">
+              ⚠️ <strong>Important:</strong> Only email-verified accounts are eligible for admin approval. 
+              The verification link expires in 24 hours.
+            </p>
           </div>
 
           <div className="space-y-4">
