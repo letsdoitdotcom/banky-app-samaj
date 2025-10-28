@@ -24,6 +24,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Debug logging
+    console.log('Profile API - User found:', {
+      id: user._id,
+      email: user.email,
+      balance: user.balance,
+      balanceType: typeof user.balance,
+      verified: user.verified,
+      approved: user.approved,
+      accountNumber: user.accountNumber
+    });
+
     res.status(200).json({
       user: {
         id: user._id,

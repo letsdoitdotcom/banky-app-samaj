@@ -88,7 +88,10 @@ export default function Dashboard() {
         userAPI.getTransactions()
       ]);
 
-      setUserDetails(profileResponse.data);
+      console.log('Dashboard - Profile Response:', profileResponse.data);
+      console.log('Dashboard - User Balance:', profileResponse.data.user?.balance, 'Type:', typeof profileResponse.data.user?.balance);
+      
+      setUserDetails(profileResponse.data.user);
       setTransactions(transactionsResponse.data.transactions || []);
     } catch (error) {
       console.error('Error fetching user data:', error);
