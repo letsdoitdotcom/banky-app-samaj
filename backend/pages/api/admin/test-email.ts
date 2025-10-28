@@ -7,7 +7,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     method: req.method,
     hasUser: !!req.user,
     userRole: req.user?.role,
-    userId: req.user?._id,
+    userId: req.user?.userId,
+    userEmail: req.user?.email,
     body: req.body
   });
 
