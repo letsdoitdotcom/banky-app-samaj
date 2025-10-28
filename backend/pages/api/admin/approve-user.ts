@@ -40,8 +40,15 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     user.balance = 1000; // Initial welcome balance
     await user.save();
 
-    // TODO: Send approval email
-    // const emailSent = await emailService.sendApprovalEmail(user.email, accountNumber);
+    // Send approval email
+    try {
+      const { sendApprovalEmail } = await import('../../../lib/emailService');
+      await sendApprovalEmail(user.email, user.name, accountNumber);
+      console.log('✅ Approval email sent to:', user.email);
+    } catch (emailError) {
+      console.error('❌ Failed to send approval email:', emailError);
+      // Continue with approval even if email fails
+    }
 
     res.status(200).json({
       message: 'User approved successfully',

@@ -94,6 +94,31 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestEmail = async () => {
+    const email = prompt('Enter email address to test:');
+    if (!email) return;
+
+    try {
+      const response = await fetch('/api/admin/test-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        toast.success('Test email sent successfully!');
+      } else {
+        toast.error('Failed to send test email');
+      }
+    } catch (error) {
+      console.error('Test email error:', error);
+      toast.error('Failed to send test email');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     router.push('/admin-login');
@@ -126,6 +151,13 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={handleTestEmail}
+                className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                title="Test Email Configuration"
+              >
+                📧 Test Email
+              </button>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{admin?.name}</p>
                 <p className="text-xs text-gray-600">{admin?.email}</p>

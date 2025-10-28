@@ -129,8 +129,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await user.save();
 
-    // TODO: Send verification email here
-    // await emailService.sendVerificationEmail(user.email, verificationToken);
+    // Send verification email
+    try {
+      const { sendVerificationEmail } = await import('../../../lib/emailService');
+      await sendVerificationEmail(user.email, user.name, verificationToken);
+      console.log('✅ Verification email sent to:', user.email);
+    } catch (emailError) {
+      console.error('❌ Failed to send verification email:', emailError);
+      // Continue with registration even if email fails
+    }
 
     res.status(201).json({
       message: 'User registered successfully. Please check your email to verify your account.',
