@@ -4,15 +4,29 @@ import User from '../../../models/User';
 import Transaction from '../../../models/Transaction';
 import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
 import { transferPerUserRateLimit } from '../../../middleware/rateLimit';
-import { sanitizeAccountNumber, sanitizeNarration } from '../../../utils/sanitize';
+import { sanitizeAccountNumber, sanitizeBankyAppAccountNumber, sanitizeNarration } from '../../../utils/sanitize';
 import Joi from 'joi';
 
 // Validation schema
 const transferSchema = Joi.object({
-  receiverAccount: Joi.string().length(10).required(),
-  amount: Joi.number().positive().max(1000000).required(),
-  type: Joi.string().valid('internal', 'external').required(),
-  narration: Joi.string().max(500).optional(),
+  receiverAccount: Joi.string().min(8).max(20).required().messages({
+    'string.empty': 'Account number is required',
+    'string.min': 'Account number must be at least 8 characters',
+    'string.max': 'Account number cannot exceed 20 characters',
+    'any.required': 'Please enter the recipient\'s account number'
+  }),
+  amount: Joi.number().positive().max(1000000).required().messages({
+    'number.positive': 'Amount must be greater than 0',
+    'number.max': 'Amount cannot exceed $1,000,000',
+    'any.required': 'Please enter the transfer amount'
+  }),
+  type: Joi.string().valid('internal', 'external').required().messages({
+    'any.only': 'Transfer type must be either internal or external',
+    'any.required': 'Transfer type is required'
+  }),
+  narration: Joi.string().max(500).optional().messages({
+    'string.max': 'Description cannot exceed 500 characters'
+  }),
 });
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
@@ -48,16 +62,38 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
     // Validate request body
     const { error, value } = transferSchema.validate(req.body);
     if (error) {
+      // Return the first validation error with user-friendly message
+      const errorMessage = error.details[0]?.message || 'Please check your transfer details';
       return res.status(400).json({ 
-        error: 'Validation error', 
-        details: error.details.map((d: any) => d.message) 
+        error: errorMessage
       });
     }
 
     const { receiverAccount, amount, type, narration } = value;
 
-    // Sanitize inputs
-    const sanitizedReceiverAccount = sanitizeAccountNumber(receiverAccount);
+    // Sanitize inputs based on transfer type
+    let sanitizedReceiverAccount: string;
+    
+    if (type === 'internal') {
+      // For internal transfers, use strict BankyApp validation (10 digits only)
+      try {
+        sanitizedReceiverAccount = sanitizeBankyAppAccountNumber(receiverAccount);
+      } catch (error: any) {
+        return res.status(400).json({ 
+          error: 'Invalid BankyApp account number. Internal transfers require a 10-digit BankyApp account number.' 
+        });
+      }
+    } else {
+      // For external transfers, use flexible validation (8-20 characters)
+      try {
+        sanitizedReceiverAccount = sanitizeAccountNumber(receiverAccount);
+      } catch (error: any) {
+        return res.status(400).json({ 
+          error: 'Invalid external account number. Please check the account number format.' 
+        });
+      }
+    }
+    
     const sanitizedNarration = sanitizeNarration(narration || '');
 
     // Check if trying to transfer to same account
@@ -65,15 +101,28 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Cannot transfer to your own account' });
     }
 
-    // For internal transfers, verify receiver account exists
+    // For internal transfers, verify receiver account exists and is valid
     if (type === 'internal') {
       const receiverUser = await User.findOne({ 
-        accountNumber: receiverAccount, 
-        approved: true 
+        accountNumber: sanitizedReceiverAccount
       });
 
       if (!receiverUser) {
-        return res.status(400).json({ error: 'Receiver account not found or not approved' });
+        return res.status(400).json({ 
+          error: 'BankyApp account not found. Please check the account number and try again.' 
+        });
+      }
+
+      if (!receiverUser.approved) {
+        return res.status(400).json({ 
+          error: 'The recipient account is not yet approved for transfers. Please try again later.' 
+        });
+      }
+
+      if (!receiverUser.emailVerified) {
+        return res.status(400).json({ 
+          error: 'The recipient account is not verified. Transfers can only be made to verified accounts.' 
+        });
       }
     }
 
@@ -90,18 +139,23 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
 
         // Check if sufficient balance
         if (user.balance < amount) {
-          throw new Error(`Insufficient balance. Available: ${user.balance}, Requested: ${amount}`);
+          const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+          });
+          throw new Error(`Insufficient balance. Available: ${formatter.format(user.balance)}, Required: ${formatter.format(amount)}`);
         }
 
         // For internal transfers, update both balances atomically
         if (type === 'internal') {
           const receiverUser = await User.findOne({ 
             accountNumber: sanitizedReceiverAccount, 
-            approved: true 
+            approved: true,
+            emailVerified: true
           }).session(session);
 
           if (!receiverUser) {
-            throw new Error('Receiver account not found or not approved');
+            throw new Error('Recipient account not found or not eligible for transfers');
           }
 
           // Deduct from sender

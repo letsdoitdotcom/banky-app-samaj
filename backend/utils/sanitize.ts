@@ -126,8 +126,25 @@ export function sanitizeNarration(narration: string): string {
   return escapeHtml(sanitized);
 }
 
-// Account number validation
+// Account number validation (flexible for external accounts)
 export function sanitizeAccountNumber(accountNumber: string): string {
+  if (typeof accountNumber !== 'string') {
+    throw new Error('Account number must be a string');
+  }
+  
+  // Remove any non-alphanumeric characters (keep letters for some bank formats)
+  const cleaned = accountNumber.replace(/[^A-Za-z0-9]/g, '');
+  
+  // Validate length (flexible for different bank formats)
+  if (cleaned.length < 8 || cleaned.length > 20) {
+    throw new Error('Account number must be between 8 and 20 characters');
+  }
+  
+  return cleaned;
+}
+
+// Internal BankyApp account validation (strict 10 digits)
+export function sanitizeBankyAppAccountNumber(accountNumber: string): string {
   if (typeof accountNumber !== 'string') {
     throw new Error('Account number must be a string');
   }
@@ -135,9 +152,9 @@ export function sanitizeAccountNumber(accountNumber: string): string {
   // Remove any non-digit characters
   const cleaned = accountNumber.replace(/\D/g, '');
   
-  // Validate length (assuming 10 digits)
+  // Validate length (exactly 10 digits for BankyApp)
   if (cleaned.length !== 10) {
-    throw new Error('Account number must be exactly 10 digits');
+    throw new Error('BankyApp account numbers must be exactly 10 digits');
   }
   
   return cleaned;
