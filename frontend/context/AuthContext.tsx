@@ -179,6 +179,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const verifyEmail = async (verificationToken: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      
+      // Clear any existing authentication when verifying email
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('admin');
+      setToken(null);
+      setUser(null);
+      setAdmin(null);
+      
       const response = await authAPI.verifyEmail(verificationToken);
       
       toast.success(response.data.message);

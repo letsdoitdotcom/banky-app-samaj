@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { validatePassword, getStrengthColor, getStrengthBgColor, PasswordValidation } from '../utils/passwordValidation';
 
 interface PasswordInputProps {
   label: string;
@@ -9,6 +10,8 @@ interface PasswordInputProps {
   required?: boolean;
   className?: string;
   error?: string;
+  showValidation?: boolean;
+  onValidationChange?: (validation: PasswordValidation) => void;
 }
 
 export const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -19,9 +22,34 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   placeholder = "Enter password",
   required = false,
   className = '',
-  error
+  error,
+  showValidation = true,
+  onValidationChange
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [validation, setValidation] = useState<PasswordValidation>({ 
+    isValid: false, 
+    errors: [], 
+    strength: 'weak' 
+  });
+
+  useEffect(() => {
+    if (value && showValidation) {
+      const newValidation = validatePassword(value);
+      setValidation(newValidation);
+      
+      if (onValidationChange) {
+        onValidationChange(newValidation);
+      }
+    } else {
+      const emptyValidation = { isValid: false, errors: [], strength: 'weak' as const };
+      setValidation(emptyValidation);
+      
+      if (onValidationChange) {
+        onValidationChange(emptyValidation);
+      }
+    }
+  }, [value, showValidation, onValidationChange]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -59,6 +87,56 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           )}
         </button>
       </div>
+
+      {/* Password Validation Display */}
+      {value && showValidation && (
+        <div className="mt-2">
+          {/* Strength Indicator */}
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-sm text-gray-600">Strength:</span>
+            <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-300 ${getStrengthBgColor(validation.strength)}`}
+                style={{ 
+                  width: validation.strength === 'weak' ? '33%' : 
+                         validation.strength === 'medium' ? '66%' : '100%' 
+                }}
+              />
+            </div>
+            <span className={`text-sm font-medium capitalize ${getStrengthColor(validation.strength)}`}>
+              {validation.strength}
+            </span>
+          </div>
+
+          {/* Requirements List */}
+          {validation.errors.length > 0 && (
+            <div className="text-sm">
+              <p className="text-gray-600 mb-1">Password must contain:</p>
+              <ul className="space-y-1">
+                {validation.errors.map((errorMsg, index) => (
+                  <li key={index} className="flex items-center text-red-600">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    {errorMsg}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {validation.isValid && (
+            <div className="flex items-center text-green-600 text-sm">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Password meets all requirements!
+            </div>
+          )}
+        </div>
+      )}
+
       {error && <p className="form-error">{error}</p>}
     </div>
   );

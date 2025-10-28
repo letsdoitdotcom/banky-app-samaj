@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { AutocompleteInput, FormattedInput } from '../components/FormInputs';
 import { PasswordInput } from '../components/PasswordInput';
+import { validatePassword, PasswordValidation } from '../utils/passwordValidation';
 import { 
   formatPhoneNumber, 
   formatSSN, 
@@ -203,6 +204,11 @@ export default function Register() {
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [loading, setLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState<PasswordValidation>({ 
+    isValid: false, 
+    errors: [], 
+    strength: 'weak' 
+  });
   
   const { register, isAuthenticated, user } = useAuth();
   const router = useRouter();
@@ -259,8 +265,11 @@ export default function Register() {
       }
       if (!formData.password) {
         newErrors.password = 'Password is required';
-      } else if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
+      } else {
+        const validation = validatePassword(formData.password);
+        if (!validation.isValid) {
+          newErrors.password = 'Password does not meet requirements';
+        }
       }
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
@@ -498,6 +507,7 @@ export default function Register() {
                   placeholder="Min. 8 characters"
                   required
                   error={errors.password}
+                  onValidationChange={setPasswordValidation}
                 />
               </div>
 
@@ -510,6 +520,7 @@ export default function Register() {
                   placeholder="Confirm password"
                   required
                   error={errors.confirmPassword}
+                  showValidation={false}
                 />
               </div>
             </div>
