@@ -106,11 +106,12 @@ export const handleAPIError = (error: any) => {
 };
 
 // Helper function to format currency
-export const formatCurrency = (amount: number): string => {
+export const formatCurrency = (amount: number | null | undefined): string => {
+  const numericAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(amount);
+  }).format(numericAmount);
 };
 
 // Helper function to format date

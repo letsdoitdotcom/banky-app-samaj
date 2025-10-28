@@ -115,7 +115,7 @@ export default function Dashboard() {
       return;
     }
 
-    if (userDetails && amount > userDetails.balance) {
+    if (userDetails && amount > (userDetails.balance || 0)) {
       toast.error('Insufficient balance');
       return;
     }
@@ -256,7 +256,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-blue-100 text-sm">Available Balance</p>
-                    <p className="text-3xl font-bold">{formatCurrency(userDetails.balance)}</p>
+                    <p className="text-3xl font-bold">{formatCurrency(userDetails.balance || 0)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-blue-100 text-sm">Account Number</p>
@@ -428,7 +428,7 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-blue-600">Available Balance</p>
-                    <p className="text-2xl font-bold text-blue-900">{formatCurrency(userDetails.balance)}</p>
+                    <p className="text-2xl font-bold text-blue-900">{formatCurrency(userDetails.balance || 0)}</p>
                   </div>
                 </div>
               </div>
@@ -461,7 +461,7 @@ export default function Dashboard() {
                         type="number"
                         step="0.01"
                         min="0.01"
-                        max={userDetails.balance}
+                        max={userDetails.balance || 0}
                         value={transferForm.amount}
                         onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })}
                         className="form-input pl-8"
@@ -470,7 +470,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <p className="text-xs text-gray-600 mt-1">
-                      Maximum: {formatCurrency(userDetails.balance)}
+                      Maximum: {formatCurrency(userDetails.balance || 0)}
                     </p>
                   </div>
 
