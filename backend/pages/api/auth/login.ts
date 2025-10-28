@@ -112,6 +112,7 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse) {
         balance: user.balance,
         verified: user.verified,
         approved: user.approved,
+        role: 'user',
       },
     });
 
