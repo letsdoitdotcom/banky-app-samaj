@@ -108,19 +108,45 @@ export default function Dashboard() {
   const fetchUserData = async () => {
     try {
       setLoading(true);
+      
+      // Fetch profile and transactions with better error handling
       const [profileResponse, transactionsResponse] = await Promise.all([
-        userAPI.getProfile(),
-        userAPI.getTransactions()
+        userAPI.getProfile().catch(err => {
+          console.error('Profile fetch error:', err);
+          throw new Error('Failed to load profile data');
+        }),
+        userAPI.getTransactions().catch(err => {
+          console.error('Transactions fetch error:', err);
+          // Don't fail the whole request if transactions fail
+          return { data: { transactions: [] } };
+        })
       ]);
 
-      console.log('Dashboard - Profile Response:', profileResponse.data);
-      console.log('Dashboard - User Balance:', profileResponse.data.user?.balance, 'Type:', typeof profileResponse.data.user?.balance);
+
+      
+      // Validate profile data
+      if (!profileResponse.data?.user) {
+        throw new Error('Invalid profile data received');
+      }
       
       setUserDetails(profileResponse.data.user);
       setTransactions(transactionsResponse.data.transactions || []);
-    } catch (error) {
+      
+      // Show success message on manual refresh
+      if (!loading) {
+        toast.success('Account data refreshed successfully');
+      }
+    } catch (error: any) {
       console.error('Error fetching user data:', error);
-      toast.error('Error loading your account data');
+      const errorMessage = error.message || 'Failed to load account data';
+      toast.error(errorMessage);
+      
+      // If profile fails completely, user should be logged out
+      if (error.message?.includes('profile')) {
+        setTimeout(() => {
+          logout();
+        }, 2000);
+      }
     } finally {
       setLoading(false);
     }
@@ -219,12 +245,23 @@ export default function Dashboard() {
     router.push('/login');
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-r-blue-300 animate-ping"></div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-gray-700">Loading your dashboard</p>
+            <p className="text-sm text-gray-500">Please wait while we fetch your account information</p>
+          </div>
+          <div className="mt-6 flex justify-center space-x-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
         </div>
       </div>
     );
@@ -232,12 +269,29 @@ export default function Dashboard() {
 
   if (!userDetails) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Error loading your account information</p>
-          <button onClick={() => router.push('/login')} className="btn-primary">
-            Back to Login
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-red-600 text-2xl">⚠️</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Account Information Unavailable</h2>
+          <p className="text-gray-600 mb-6">
+            We're having trouble loading your account information. This might be a temporary issue.
+          </p>
+          <div className="space-y-3">
+            <button 
+              onClick={fetchUserData} 
+              className="btn-primary w-full"
+            >
+              🔄 Try Again
+            </button>
+            <button 
+              onClick={() => router.push('/login')} 
+              className="btn-secondary w-full"
+            >
+              Back to Login
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -246,28 +300,46 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-lg border-b border-gray-200">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">⚡</span>
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-lg">⚡</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">BankyApp</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  BankyApp
+                </h1>
                 <p className="text-sm text-gray-600">Your Digital Banking Experience</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{userDetails.name}</p>
-                <p className="text-xs text-gray-600">{userDetails.accountNumber}</p>
+            <div className="flex items-center space-x-6">
+              <div className="hidden md:flex items-center space-x-4">
+                <div className="text-right">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">
+                        {userDetails.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{userDetails.name}</p>
+                      <p className="text-xs text-gray-600 font-mono">{userDetails.accountNumber}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Balance</p>
+                  <p className="text-sm font-bold text-green-600">{formatCurrency(userDetails.balance || 0)}</p>
+                </div>
               </div>
               <button
                 onClick={handleLogout}
-                className="btn-secondary text-sm"
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
               >
-                Logout
+                <span>🚪</span>
+                <span className="hidden md:inline">Logout</span>
               </button>
             </div>
           </div>
@@ -276,49 +348,59 @@ export default function Dashboard() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm min-h-screen">
-          <nav className="p-4 space-y-2">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                activeTab === 'overview'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              🏠 Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('deposit')}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                activeTab === 'deposit'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              💰 Deposit Funds
-            </button>
-            <button
-              onClick={() => setActiveTab('transfer')}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                activeTab === 'transfer'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              💸 Transfer Money
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                activeTab === 'history'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              📋 Transaction History
-            </button>
-          </nav>
+        <aside className="w-72 bg-white shadow-lg min-h-screen border-r border-gray-200">
+          <div className="p-6">
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h3>
+              <p className="text-sm text-gray-600">Manage your banking activities</p>
+            </div>
+            <nav className="space-y-3">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                  activeTab === 'overview'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <span className="text-xl">🏠</span>
+                <span className="font-medium">Overview</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('deposit')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                  activeTab === 'deposit'
+                    ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <span className="text-xl">💰</span>
+                <span className="font-medium">Deposit Funds</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('transfer')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                  activeTab === 'transfer'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <span className="text-xl">💸</span>
+                <span className="font-medium">Transfer Money</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                  activeTab === 'history'
+                    ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <span className="text-xl">📋</span>
+                <span className="font-medium">Transaction History</span>
+              </button>
+            </nav>
+          </div>
         </aside>
 
         {/* Main Content */}
@@ -326,25 +408,59 @@ export default function Dashboard() {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Account Overview</h2>
-                <button
-                  onClick={fetchUserData}
-                  className="btn-primary"
-                >
-                  Refresh
-                </button>
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Account Overview</h2>
+                  <p className="text-gray-600">Welcome back, {userDetails.name}! Here's your account summary.</p>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setActiveTab('deposit')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+                  >
+                    <span>💰</span>
+                    <span>Deposit</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('transfer')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                  >
+                    <span>💸</span>
+                    <span>Transfer</span>
+                  </button>
+                  <button
+                    onClick={fetchUserData}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200"
+                  >
+                    <span>🔄</span>
+                    <span>Refresh</span>
+                  </button>
+                </div>
               </div>
 
               {/* Account Balance Card */}
-              <div className="card bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-100 text-sm">Available Balance</p>
-                    <p className="text-3xl font-bold">{formatCurrency(userDetails.balance || 0)}</p>
+              <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white rounded-2xl p-6 shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="text-blue-100 text-sm font-medium mb-2">Available Balance</p>
+                      <p className="text-4xl font-bold tracking-tight">{formatCurrency(userDetails.balance || 0)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-blue-100 text-sm font-medium mb-2">Account Number</p>
+                      <p className="text-xl font-mono tracking-wider">{userDetails.accountNumber}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-blue-100 text-sm">Account Number</p>
-                    <p className="text-lg font-mono">{userDetails.accountNumber}</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-white/20">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-sm text-blue-100">Account Active</span>
+                    </div>
+                    <div className="text-sm text-blue-100">
+                      {userDetails.verified ? '✅ Verified' : '⏳ Pending Verification'}
+                    </div>
                   </div>
                 </div>
               </div>

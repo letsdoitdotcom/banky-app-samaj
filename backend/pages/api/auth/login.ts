@@ -78,7 +78,7 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Check if email is verified
-    if (!user.verified) {
+    if (!user.emailVerified) {
       return res.status(403).json({ 
         error: 'Email not verified', 
         message: 'Please verify your email address before logging in. Check your inbox for the verification link.' 

@@ -32,9 +32,17 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
+      // Token expired or invalid - clean up completely
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('user');
+      localStorage.removeItem('admin');
+      
+      // Only redirect if not already on login page to avoid loops
+      if (typeof window !== 'undefined' && 
+          !window.location.pathname.includes('/login') && 
+          !window.location.pathname.includes('/admin-login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

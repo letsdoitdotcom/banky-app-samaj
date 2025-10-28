@@ -91,23 +91,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check for existing auth on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    const storedAdmin = localStorage.getItem('admin');
+    const initializeAuth = () => {
+      try {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        const storedAdmin = localStorage.getItem('admin');
 
-    if (storedToken) {
-      setToken(storedToken);
-      
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        if (storedToken) {
+          setToken(storedToken);
+          
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+          }
+          
+          if (storedAdmin) {
+            const parsedAdmin = JSON.parse(storedAdmin);
+            setAdmin(parsedAdmin);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing stored auth data:', error);
+        // Clear corrupted data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('admin');
+      } finally {
+        setIsLoading(false);
       }
-      
-      if (storedAdmin) {
-        setAdmin(JSON.parse(storedAdmin));
-      }
-    }
-    
-    setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -202,16 +216,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('admin');
-    
-    setToken(null);
-    setUser(null);
-    setAdmin(null);
-    
-    toast.success('Logged out successfully');
-    router.push('/');
+    try {
+      // Clear all auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('admin');
+      
+      // Reset all state
+      setToken(null);
+      setUser(null);
+      setAdmin(null);
+      
+      toast.success('Logged out successfully');
+      
+      // Redirect to appropriate page based on current location
+      const currentPath = router.asPath;
+      if (currentPath.includes('/admin')) {
+        router.push('/admin-login');
+      } else {
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if there's an error
+      window.location.href = '/';
+    }
   };
 
   const setAdminSession = (authToken: string, adminData: Admin) => {
