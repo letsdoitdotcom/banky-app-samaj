@@ -11,9 +11,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {
     await connectDB();
 
-    // Get all pending users (verified but not approved)
+    // Get all pending users (not approved yet, regardless of verification)
     const pendingUsers = await User.find({ 
-      verified: true, 
       approved: false 
     })
     .select('-password -verificationToken')
@@ -38,10 +37,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           },
           pending: {
             $sum: { 
-              $cond: [
-                { $and: [{ $eq: ["$verified", true] }, { $eq: ["$approved", false] }] }, 
-                1, 0
-              ] 
+              $cond: [{ $eq: ["$approved", false] }, 1, 0] 
             }
           },
           approved: {

@@ -25,11 +25,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if user is verified
-    if (!user.verified) {
-      return res.status(400).json({ error: 'User email is not verified' });
-    }
-
     // Check if already approved
     if (user.approved) {
       return res.status(400).json({ error: 'User is already approved' });
@@ -38,10 +33,11 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     // Generate unique account number
     const accountNumber = await generateUniqueAccountNumber();
 
-    // Approve user and assign account number
+    // Approve user, verify, and assign account number
     user.approved = true;
+    user.verified = true; // Auto-verify when admin approves
     user.accountNumber = accountNumber;
-    user.balance = 0; // Initial balance
+    user.balance = 1000; // Initial welcome balance
     await user.save();
 
     // TODO: Send approval email
