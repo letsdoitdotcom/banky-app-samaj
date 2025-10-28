@@ -42,21 +42,46 @@ interface TransferForm {
   receiverAccount: string;
   amount: string;
   narration: string;
+  bankName: string;
 }
+
+interface DepositForm {
+  amount: string;
+}
+
+// Bank options for transfers
+const BANK_OPTIONS = [
+  { value: 'BankyApp', label: 'BankyApp (Internal)' },
+  { value: 'Chase', label: 'Chase Bank' },
+  { value: 'BankOfAmerica', label: 'Bank of America' },
+  { value: 'Wells Fargo', label: 'Wells Fargo' },
+  { value: 'Citibank', label: 'Citibank' },
+  { value: 'US Bank', label: 'US Bank' },
+  { value: 'PNC', label: 'PNC Bank' },
+  { value: 'Capital One', label: 'Capital One' },
+  { value: 'TD Bank', label: 'TD Bank' },
+  { value: 'Truist', label: 'Truist Bank' }
+];
 
 export default function Dashboard() {
   const router = useRouter();
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'transfer' | 'history'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'transfer' | 'history'>('overview');
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [transferLoading, setTransferLoading] = useState(false);
+  const [depositLoading, setDepositLoading] = useState(false);
   
   const [transferForm, setTransferForm] = useState<TransferForm>({
     receiverAccount: '',
     amount: '',
-    narration: ''
+    narration: '',
+    bankName: ''
+  });
+
+  const [depositForm, setDepositForm] = useState<DepositForm>({
+    amount: ''
   });
 
   useEffect(() => {
@@ -104,7 +129,7 @@ export default function Dashboard() {
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!transferForm.receiverAccount || !transferForm.amount) {
+    if (!transferForm.bankName || !transferForm.receiverAccount || !transferForm.amount) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -120,16 +145,24 @@ export default function Dashboard() {
       return;
     }
 
+    // Determine if it's internal or external transfer
+    const transferType = transferForm.bankName === 'BankyApp' ? 'internal' : 'external';
+
     try {
       setTransferLoading(true);
       await userAPI.createTransfer({
         receiverAccount: transferForm.receiverAccount,
         amount: amount,
-        narration: transferForm.narration
+        narration: transferForm.narration,
+        type: transferType
       });
 
-      toast.success('Transfer initiated successfully!');
-      setTransferForm({ receiverAccount: '', amount: '', narration: '' });
+      const successMessage = transferType === 'internal' 
+        ? 'Internal transfer completed successfully!'
+        : 'External transfer initiated successfully! Processing may take 1-3 business days.';
+      
+      toast.success(successMessage, { duration: 5000 });
+      setTransferForm({ receiverAccount: '', amount: '', narration: '', bankName: '' });
       setActiveTab('history');
       fetchUserData(); // Refresh data
     } catch (error) {
@@ -137,6 +170,47 @@ export default function Dashboard() {
       toast.error(errorMessage);
     } finally {
       setTransferLoading(false);
+    }
+  };
+
+  const handleDeposit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!depositForm.amount) {
+      toast.error('Please enter an amount to deposit');
+      return;
+    }
+
+    const amount = parseFloat(depositForm.amount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    if (amount > 10000) {
+      toast.error('Maximum deposit amount is $10,000');
+      return;
+    }
+
+    try {
+      setDepositLoading(true);
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success('Deposit request submitted! Processing may take 1-3 business days.', {
+        duration: 5000,
+        style: {
+          background: '#10B981',
+          color: '#fff',
+        },
+      });
+      
+      setDepositForm({ amount: '' });
+    } catch (error) {
+      toast.error('Failed to process deposit request');
+    } finally {
+      setDepositLoading(false);
     }
   };
 
@@ -213,6 +287,16 @@ export default function Dashboard() {
               }`}
             >
               🏠 Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('deposit')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'deposit'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              💰 Deposit Funds
             </button>
             <button
               onClick={() => setActiveTab('transfer')}
@@ -416,6 +500,124 @@ export default function Dashboard() {
             </div>
           )}
 
+          {activeTab === 'deposit' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">Deposit Funds</h2>
+
+              {/* Balance Display */}
+              <div className="card bg-green-50 border-green-200">
+                <div className="flex items-center">
+                  <div className="p-3 rounded-full bg-green-100">
+                    <span className="text-green-600 text-xl">💰</span>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm text-green-600">Current Balance</p>
+                    <p className="text-2xl font-bold text-green-900">{formatCurrency(userDetails.balance || 0)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Deposit Form */}
+              <div className="card">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Add Money to Your Account</h3>
+                <form onSubmit={handleDeposit} className="space-y-6">
+                  <div>
+                    <label className="form-label">
+                      Deposit Amount *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        max="10000"
+                        value={depositForm.amount}
+                        onChange={(e) => setDepositForm({ amount: e.target.value })}
+                        className="form-input pl-8"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Minimum: $0.01 | Maximum: $10,000.00
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex">
+                      <span className="text-blue-600 text-xl mr-3">ℹ️</span>
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-800">Deposit Information</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          Deposit requests are processed within 1-3 business days. You will receive an email confirmation once the deposit is completed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={depositLoading}
+                    className="btn-primary w-full"
+                  >
+                    {depositLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Processing Deposit...
+                      </>
+                    ) : (
+                      'Request Deposit'
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* Deposit Methods Info */}
+              <div className="card">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Deposit Methods</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="p-2 rounded-full bg-blue-100">
+                      <span className="text-blue-600">🏧</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-900">Bank Transfer</p>
+                      <p className="text-xs text-gray-600">1-3 business days</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="p-2 rounded-full bg-green-100">
+                      <span className="text-green-600">💳</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-900">Debit Card</p>
+                      <p className="text-xs text-gray-600">Instant - 1 day</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="p-2 rounded-full bg-purple-100">
+                      <span className="text-purple-600">📱</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-900">Mobile Check</p>
+                      <p className="text-xs text-gray-600">1-2 business days</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="p-2 rounded-full bg-yellow-100">
+                      <span className="text-yellow-600">🏪</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-900">Cash Deposit</p>
+                      <p className="text-xs text-gray-600">Same day</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'transfer' && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">Transfer Money</h2>
@@ -439,6 +641,33 @@ export default function Dashboard() {
                 <form onSubmit={handleTransfer} className="space-y-6">
                   <div>
                     <label className="form-label">
+                      Recipient Bank *
+                    </label>
+                    <select
+                      value={transferForm.bankName}
+                      onChange={(e) => setTransferForm({ ...transferForm, bankName: e.target.value })}
+                      className="form-input"
+                      required
+                    >
+                      <option value="">Select recipient's bank</option>
+                      {BANK_OPTIONS.map((bank) => (
+                        <option key={bank.value} value={bank.value}>
+                          {bank.label}
+                        </option>
+                      ))}
+                    </select>
+                    {transferForm.bankName && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        {transferForm.bankName === 'BankyApp' 
+                          ? '✅ Internal transfer - Instant processing' 
+                          : '⚠️ External transfer - 1-3 business days processing'
+                        }
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="form-label">
                       Recipient Account Number *
                     </label>
                     <input
@@ -449,6 +678,11 @@ export default function Dashboard() {
                       placeholder="Enter recipient's account number"
                       required
                     />
+                    {transferForm.bankName === 'BankyApp' && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        Must be a valid BankyApp account number (10 digits)
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -487,13 +721,30 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className={`border rounded-lg p-4 ${
+                    transferForm.bankName === 'BankyApp' 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-yellow-50 border-yellow-200'
+                  }`}>
                     <div className="flex">
-                      <span className="text-yellow-600 text-xl mr-3">⚠️</span>
+                      <span className={`text-xl mr-3 ${
+                        transferForm.bankName === 'BankyApp' ? 'text-green-600' : 'text-yellow-600'
+                      }`}>
+                        {transferForm.bankName === 'BankyApp' ? '✅' : '⚠️'}
+                      </span>
                       <div>
-                        <h4 className="text-sm font-medium text-yellow-800">Important Notice</h4>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          Please verify the recipient account number carefully. Transfers cannot be reversed once processed.
+                        <h4 className={`text-sm font-medium ${
+                          transferForm.bankName === 'BankyApp' ? 'text-green-800' : 'text-yellow-800'
+                        }`}>
+                          {transferForm.bankName === 'BankyApp' ? 'Internal Transfer' : 'External Transfer Notice'}
+                        </h4>
+                        <p className={`text-sm mt-1 ${
+                          transferForm.bankName === 'BankyApp' ? 'text-green-700' : 'text-yellow-700'
+                        }`}>
+                          {transferForm.bankName === 'BankyApp' 
+                            ? 'This transfer will be processed instantly and completed immediately.'
+                            : 'External transfers may take 1-3 business days to process. Please verify the account number carefully as transfers cannot be reversed once processed.'
+                          }
                         </p>
                       </div>
                     </div>

@@ -72,6 +72,7 @@ export const userAPI = {
     receiverAccount: string;
     amount: number;
     narration?: string;
+    type?: 'internal' | 'external';
   }) => api.post('/api/user/transfer', transferData),
 };
 
