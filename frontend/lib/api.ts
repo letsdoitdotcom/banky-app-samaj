@@ -74,6 +74,9 @@ export const userAPI = {
     amount: number;
     type: 'internal' | 'external';
     narration?: string;
+    beneficiaryName?: string;
+    transferReference?: string;
+    purposeOfTransfer?: string;
   }) => api.post('/api/user/transfer', transferData),
   
   createTransfer: (transferData: {
@@ -81,6 +84,9 @@ export const userAPI = {
     amount: number;
     narration?: string;
     type?: 'internal' | 'external';
+    beneficiaryName?: string;
+    transferReference?: string;
+    purposeOfTransfer?: string;
   }) => api.post('/api/user/transfer', transferData),
   
   deposit: (depositData: {
