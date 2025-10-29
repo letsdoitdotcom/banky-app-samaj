@@ -107,6 +107,12 @@ export const adminAPI = {
     newPassword: string;
     confirmPassword: string;
   }) => api.post('/api/admin/change-password', passwordData),
+  
+  approveTransaction: (transactionData: {
+    transactionId: string;
+    action: 'approve' | 'reject';
+    adminComment?: string;
+  }) => api.post('/api/admin/approve-transaction', transactionData),
 };
 
 // Generic error handler

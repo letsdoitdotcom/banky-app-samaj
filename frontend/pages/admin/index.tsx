@@ -116,30 +116,18 @@ export default function AdminDashboard() {
     try {
       toast.loading(`${action === 'approve' ? 'Approving' : 'Rejecting'} transaction...`, { id: 'transaction-action' });
       
-      const response = await fetch('/api/admin/approve-transaction', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({
-          transactionId,
-          action,
-          adminComment: comment || undefined
-        })
+      await adminAPI.approveTransaction({
+        transactionId,
+        action,
+        adminComment: comment || undefined
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success(`Transaction ${actionText}d successfully!`, { id: 'transaction-action' });
-        fetchData(); // Refresh data
-      } else {
-        toast.error(data.error || `Failed to ${actionText} transaction`, { id: 'transaction-action' });
-      }
-    } catch (error) {
+      toast.success(`Transaction ${actionText}d successfully!`, { id: 'transaction-action' });
+      fetchData(); // Refresh data
+    } catch (error: any) {
       console.error(`Transaction ${actionText} error:`, error);
-      toast.error(`Error ${actionText}ing transaction`, { id: 'transaction-action' });
+      const errorMessage = handleAPIError(error);
+      toast.error(errorMessage, { id: 'transaction-action' });
     }
   };
 
