@@ -71,7 +71,7 @@ export default function AdminLogin() {
                   }
                 })}
                 className={`input ${errors.email ? 'input-error' : ''}`}
-                placeholder="Matt015014@gmail.com"
+                placeholder=""
               />
               {errors.email && <p className="form-error">{errors.email.message}</p>}
             </div>
@@ -134,15 +134,6 @@ export default function AdminLogin() {
                   This is a restricted area. All admin activities are logged and monitored.
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="text-blue-800 font-medium text-sm mb-2">Demo Credentials</h4>
-            <div className="text-blue-700 text-xs space-y-1">
-              <p><strong>Email:</strong> Matt015014@gmail.com</p>
-              <p><strong>Password:</strong> admin123</p>
             </div>
           </div>
 
