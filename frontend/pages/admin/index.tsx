@@ -640,11 +640,6 @@ export default function AdminDashboard() {
                               <tr>
                                 <td colSpan={6} className="p-0">
                                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-l-4 border-green-400">
-                                    {/* Security Warning */}
-                                    <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
-                                      <div className="flex items-center space-x-2">
-                                      </div>
-                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                       {/* Personal Information */}
                                       <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-red-400">
@@ -814,11 +809,6 @@ export default function AdminDashboard() {
                             <tr>
                               <td colSpan={6} className="p-0">
                                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-l-4 border-blue-400">
-                                  {/* Security Warning */}
-                                  <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
-                                    <div className="flex items-center space-x-2">
-                                    </div>
-                                  </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {/* Personal Information */}
                                     <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-red-400">
