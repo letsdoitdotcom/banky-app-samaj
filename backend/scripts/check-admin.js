@@ -22,7 +22,7 @@ async function checkAdminUser() {
 
     // Find admin user
     const admin = await Admin.findOne({ 
-      email: 'admin@bankyapp.com' 
+      email: 'Matt015014@gmail.com' 
     }).select('+password');
     
     if (!admin) {

@@ -47,7 +47,7 @@ async function seedProductionAdmin() {
     console.log('✅ Connected to production MongoDB');
 
     // Delete existing admin if any (to ensure clean state)
-    await Admin.deleteMany({ email: 'admin@bankyapp.com' });
+    await Admin.deleteMany({ email: 'Matt015014@gmail.com' });
     console.log('🗑️ Cleared existing admin accounts');
 
     // Hash the password
@@ -57,7 +57,7 @@ async function seedProductionAdmin() {
     // Create new admin
     const newAdmin = new Admin({
       name: 'System Administrator',
-      email: 'admin@bankyapp.com',
+      email: 'Matt015014@gmail.com',
       password: hashedPassword,
       role: 'superadmin'
     });
@@ -71,7 +71,7 @@ async function seedProductionAdmin() {
     console.log('   ID:', newAdmin._id);
     
     // Verify the admin can be found and password works
-    const foundAdmin = await Admin.findOne({ email: 'admin@bankyapp.com' }).select('+password');
+    const foundAdmin = await Admin.findOne({ email: 'Matt015014@gmail.com' }).select('+password');
     if (foundAdmin) {
       const passwordTest = await bcrypt.compare('admin123', foundAdmin.password);
       console.log('✅ Verification: Admin found and password works:', passwordTest);

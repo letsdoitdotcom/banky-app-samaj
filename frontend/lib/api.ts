@@ -105,7 +105,6 @@ export const adminAPI = {
   changePassword: (passwordData: {
     currentPassword: string;
     newPassword: string;
-    confirmPassword: string;
   }) => api.post('/api/admin/change-password', passwordData),
   
   approveTransaction: (transactionData: {

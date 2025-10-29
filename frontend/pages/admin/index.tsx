@@ -62,6 +62,13 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({ emailUnverified: 0, emailVerified: 0, pending: 0, approved: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     // Wait for auth to load before checking
@@ -236,6 +243,42 @@ export default function AdminDashboard() {
     router.push('/admin-login');
   };
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+
+    setPasswordLoading(true);
+    
+    try {
+      await adminAPI.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+      
+      toast.success('Password changed successfully!');
+      setShowPasswordModal(false);
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      const errorMessage = handleAPIError(error);
+      toast.error(errorMessage);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -291,6 +334,13 @@ export default function AdminDashboard() {
                 <p className="text-sm font-medium text-gray-900">{admin?.name}</p>
                 <p className="text-xs text-gray-600">{admin?.email}</p>
               </div>
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="px-3 py-1.5 text-xs bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors mr-2"
+                title="Change Password"
+              >
+                🔑 Change Password
+              </button>
               <button
                 onClick={handleLogout}
                 className="btn-secondary text-sm"
@@ -587,14 +637,6 @@ export default function AdminDashboard() {
                                     {/* Security Warning */}
                                     <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
                                       <div className="flex items-center space-x-2">
-                                        <span className="text-red-600 text-xl">🛡️</span>
-                                        <div>
-                                          <h5 className="font-bold text-red-800">SENSITIVE INFORMATION - ADMIN ACCESS</h5>
-                                          <p className="text-sm text-red-700 mt-1">
-                                            The following information contains highly sensitive personal, financial, and identity data. 
-                                            Handle with extreme care. Never share or discuss this information outside of authorized banking operations.
-                                          </p>
-                                        </div>
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -769,14 +811,6 @@ export default function AdminDashboard() {
                                   {/* Security Warning */}
                                   <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
                                     <div className="flex items-center space-x-2">
-                                      <span className="text-red-600 text-xl">🛡️</span>
-                                      <div>
-                                        <h5 className="font-bold text-red-800">SENSITIVE INFORMATION - ADMIN ACCESS</h5>
-                                        <p className="text-sm text-red-700 mt-1">
-                                          The following information contains highly sensitive personal, financial, and identity data. 
-                                          Handle with extreme care. Never share or discuss this information outside of authorized banking operations.
-                                        </p>
-                                      </div>
                                     </div>
                                   </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1030,6 +1064,85 @@ export default function AdminDashboard() {
           )}
         </main>
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
+                <button
+                  onClick={() => setShowPasswordModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    minLength={6}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    minLength={6}
+                    required
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordModal(false)}
+                    className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {passwordLoading ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ export async function seedDatabase() {
       // Create default admin
       const defaultAdmin = new Admin({
         name: process.env.DEFAULT_ADMIN_NAME || 'System Administrator',
-        email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@bankyapp.com',
+        email: process.env.DEFAULT_ADMIN_EMAIL || 'Matt015014@gmail.com',
         password: hashedPassword,
         role: 'superadmin'
       });

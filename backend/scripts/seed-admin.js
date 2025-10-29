@@ -23,7 +23,7 @@ async function seedAdmin() {
 
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({ 
-      email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@bankyapp.com' 
+      email: process.env.DEFAULT_ADMIN_EMAIL || 'Matt015014@gmail.com' 
     });
     
     if (existingAdmin) {
@@ -42,7 +42,7 @@ async function seedAdmin() {
     // Create default admin
     const defaultAdmin = new Admin({
       name: process.env.DEFAULT_ADMIN_NAME || 'System Administrator',
-      email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@bankyapp.com',
+      email: process.env.DEFAULT_ADMIN_EMAIL || 'Matt015014@gmail.com',
       password: hashedPassword,
       role: 'superadmin'
     });
