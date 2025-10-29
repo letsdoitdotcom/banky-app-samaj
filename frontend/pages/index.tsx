@@ -26,7 +26,7 @@ export default function Home() {
     <>
       <Head>
         <title>LumaTrust - Private Banking Platform</title>
-        <meta name="description" content="LumaTrust - Secure private banking simulation platform. Not for public access." />
+        <meta name="description" content="LumaTrust - Secure private banking platform offering modern digital banking services, instant transfers, and comprehensive financial management solutions." />
         <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
         <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
         <meta property="og:robots" content="noindex, nofollow" />
@@ -198,7 +198,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 LumaTrust. All rights reserved. | Banking Simulation Platform</p>
+            <p>&copy; 2024 LumaTrust. All rights reserved. | Digital Banking Solutions</p>
           </div>
         </div>
       </footer>
