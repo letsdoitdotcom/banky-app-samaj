@@ -1,4 +1,5 @@
 import React from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
@@ -22,7 +23,16 @@ export default function Home() {
   }, [isAuthenticated, user, admin, authLoading, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <>
+      <Head>
+        <title>LumaTrust - Private Banking Platform</title>
+        <meta name="description" content="LumaTrust - Secure private banking simulation platform. Not for public access." />
+        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta property="og:robots" content="noindex, nofollow" />
+        <meta name="referrer" content="no-referrer" />
+      </Head>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation */}
       <nav className="navbar px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -192,6 +202,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
