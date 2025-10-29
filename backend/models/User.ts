@@ -86,7 +86,7 @@ const UserSchema = new Schema<IUser>({
   },
   balance: {
     type: Number,
-    default: 0.00,
+    default: 50.00, // $50 welcome bonus for new users
     min: [0, 'Balance cannot be negative']
   },
   verificationToken: String,

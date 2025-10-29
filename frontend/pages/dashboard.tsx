@@ -69,6 +69,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'transfer' | 'history'>('overview');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -266,6 +267,17 @@ export default function Dashboard() {
     router.push('/login');
   };
 
+  // Function to handle smooth tab transitions
+  const handleTabChange = (newTab: 'overview' | 'deposit' | 'transfer' | 'history') => {
+    if (newTab === activeTab) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveTab(newTab);
+      setIsTransitioning(false);
+    }, 150); // 150ms transition
+  };
+
   // Function to mask sensitive information
   const maskSensitiveInfo = (value: string, showFirst: number = 3, showLast: number = 4) => {
     if (!value || value.length <= showFirst + showLast) return value;
@@ -385,41 +397,41 @@ export default function Dashboard() {
         <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex space-x-1 overflow-x-auto">
             <button
-              onClick={() => setActiveTab('overview')}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => handleTabChange('overview')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                 activeTab === 'overview'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-blue-600 text-white transform scale-105'
+                  : 'text-gray-600 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               🏠 Overview
             </button>
             <button
-              onClick={() => setActiveTab('deposit')}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => handleTabChange('deposit')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                 activeTab === 'deposit'
-                  ? 'bg-green-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-green-600 text-white transform scale-105'
+                  : 'text-gray-600 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               💰 Deposit
             </button>
             <button
-              onClick={() => setActiveTab('transfer')}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => handleTabChange('transfer')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                 activeTab === 'transfer'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-purple-600 text-white transform scale-105'
+                  : 'text-gray-600 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               💸 Transfer
             </button>
             <button
-              onClick={() => setActiveTab('history')}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => handleTabChange('history')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                 activeTab === 'history'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-indigo-600 text-white transform scale-105'
+                  : 'text-gray-600 hover:bg-gray-100 hover:scale-102'
               }`}
             >
               📋 History
@@ -436,44 +448,44 @@ export default function Dashboard() {
             </div>
             <nav className="space-y-3">
               <button
-                onClick={() => setActiveTab('overview')}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                onClick={() => handleTabChange('overview')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center space-x-3 ${
                   activeTab === 'overview'
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:scale-102'
                 }`}
               >
                 <span className="text-xl">🏠</span>
                 <span className="font-medium">Overview</span>
               </button>
               <button
-                onClick={() => setActiveTab('deposit')}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                onClick={() => handleTabChange('deposit')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center space-x-3 ${
                   activeTab === 'deposit'
                     ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:scale-102'
                 }`}
               >
                 <span className="text-xl">💰</span>
                 <span className="font-medium">Deposit Funds</span>
               </button>
               <button
-                onClick={() => setActiveTab('transfer')}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                onClick={() => handleTabChange('transfer')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center space-x-3 ${
                   activeTab === 'transfer'
                     ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:scale-102'
                 }`}
               >
                 <span className="text-xl">💸</span>
                 <span className="font-medium">Transfer Money</span>
               </button>
               <button
-                onClick={() => setActiveTab('history')}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-3 ${
+                onClick={() => handleTabChange('history')}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center space-x-3 ${
                   activeTab === 'history'
                     ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:scale-102'
                 }`}
               >
                 <span className="text-xl">📋</span>
@@ -485,6 +497,7 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6">
+          <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform scale-95' : 'opacity-100 transform scale-100'}`}>
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -494,15 +507,15 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
                   <button
-                    onClick={() => setActiveTab('deposit')}
-                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+                    onClick={() => handleTabChange('deposit')}
+                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 hover:scale-105 text-sm sm:text-base"
                   >
                     <span>💰</span>
                     <span className="hidden sm:inline">Deposit</span>
                   </button>
                   <button
-                    onClick={() => setActiveTab('transfer')}
-                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+                    onClick={() => handleTabChange('transfer')}
+                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 hover:scale-105 text-sm sm:text-base"
                   >
                     <span>💸</span>
                     <span className="hidden sm:inline">Transfer</span>
@@ -969,7 +982,7 @@ export default function Dashboard() {
                         Processing Deposit...
                       </>
                     ) : (
-                      'Request Deposit'
+                      'Deposit'
                     )}
                   </button>
                 </form>
@@ -1243,6 +1256,7 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+          </div>
         </main>
       </div>
     </div>

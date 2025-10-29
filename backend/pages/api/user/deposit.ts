@@ -4,7 +4,6 @@ import User from '../../../models/User';
 import Transaction from '../../../models/Transaction';
 import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
 import { depositRateLimit } from '../../../middleware/rateLimit';
-import { sanitize } from '../../../utils/sanitize';
 import Joi from 'joi';
 
 // Validation schema for deposit
