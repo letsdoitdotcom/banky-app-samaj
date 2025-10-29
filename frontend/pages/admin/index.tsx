@@ -546,42 +546,75 @@ export default function AdminDashboard() {
                               <tr>
                                 <td colSpan={6} className="p-0">
                                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-l-4 border-green-400">
+                                    {/* Security Warning */}
+                                    <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
+                                      <div className="flex items-center space-x-2">
+                                        <span className="text-red-600 text-xl">🛡️</span>
+                                        <div>
+                                          <h5 className="font-bold text-red-800">SENSITIVE INFORMATION - ADMIN ACCESS</h5>
+                                          <p className="text-sm text-red-700 mt-1">
+                                            The following information contains highly sensitive personal, financial, and identity data. 
+                                            Handle with extreme care. Never share or discuss this information outside of authorized banking operations.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                       {/* Personal Information */}
-                                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                                      <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-red-400">
                                         <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                                           <span className="text-blue-600 mr-2">👤</span>
                                           Personal Information
+                                          <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">🔒 SENSITIVE</span>
                                         </h4>
                                         <div className="space-y-2 text-sm">
                                           <div>
-                                            <span className="font-medium text-gray-600">Full Name:</span>
-                                            <span className="ml-2 text-gray-900">{user.name}</span>
+                                            <span className="font-medium text-gray-600">Full Legal Name:</span>
+                                            <span className="ml-2 text-gray-900 font-medium">{user.name}</span>
                                           </div>
                                           <div>
-                                            <span className="font-medium text-gray-600">Email:</span>
+                                            <span className="font-medium text-gray-600">Email Address:</span>
                                             <span className="ml-2 text-gray-900">{user.email}</span>
                                           </div>
                                           <div>
-                                            <span className="font-medium text-gray-600">Phone:</span>
+                                            <span className="font-medium text-gray-600">Phone Number:</span>
                                             <span className="ml-2 text-gray-900">{user.phone}</span>
                                           </div>
+                                          <div className="bg-red-50 p-2 rounded border border-red-200">
+                                            <span className="font-medium text-red-700">🆔 SSN/ID Number:</span>
+                                            <span className="ml-2 text-red-900 font-mono font-bold">{user.idNumber}</span>
+                                            <div className="text-xs text-red-600 mt-1">⚠️ Highly Sensitive - PII Data</div>
+                                          </div>
                                           <div>
-                                            <span className="font-medium text-gray-600">ID Number:</span>
-                                            <span className="ml-2 text-gray-900 font-mono">{user.idNumber}</span>
+                                            <span className="font-medium text-gray-600">Registration Date:</span>
+                                            <span className="ml-2 text-gray-900">{formatDate(user.createdAt)}</span>
+                                          </div>
+                                          <div>
+                                            <span className="font-medium text-gray-600">Last Updated:</span>
+                                            <span className="ml-2 text-gray-900">{formatDate(user.updatedAt)}</span>
                                           </div>
                                         </div>
                                       </div>
 
                                       {/* Address Information */}
-                                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                                      <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-yellow-400">
                                         <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                                           <span className="text-green-600 mr-2">📍</span>
                                           Address Information
+                                          <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">🔒 PRIVATE</span>
                                         </h4>
                                         <div className="space-y-2 text-sm">
+                                          <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                                            <span className="font-medium text-yellow-700">🏠 Complete Address:</span>
+                                            <div className="ml-2 text-yellow-900 font-medium mt-1">
+                                              {user.address.street}<br/>
+                                              {user.address.city}, {user.address.state} {user.address.zipCode}<br/>
+                                              {user.address.country}
+                                            </div>
+                                            <div className="text-xs text-yellow-600 mt-1">⚠️ Residential Information - Handle with Care</div>
+                                          </div>
                                           <div>
-                                            <span className="font-medium text-gray-600">Street:</span>
+                                            <span className="font-medium text-gray-600">Street Address:</span>
                                             <span className="ml-2 text-gray-900">{user.address.street}</span>
                                           </div>
                                           <div>
@@ -589,12 +622,12 @@ export default function AdminDashboard() {
                                             <span className="ml-2 text-gray-900">{user.address.city}</span>
                                           </div>
                                           <div>
-                                            <span className="font-medium text-gray-600">State:</span>
+                                            <span className="font-medium text-gray-600">State/Province:</span>
                                             <span className="ml-2 text-gray-900">{user.address.state}</span>
                                           </div>
                                           <div>
-                                            <span className="font-medium text-gray-600">ZIP Code:</span>
-                                            <span className="ml-2 text-gray-900">{user.address.zipCode}</span>
+                                            <span className="font-medium text-gray-600">ZIP/Postal Code:</span>
+                                            <span className="ml-2 text-gray-900 font-mono">{user.address.zipCode}</span>
                                           </div>
                                           <div>
                                             <span className="font-medium text-gray-600">Country:</span>
@@ -695,42 +728,75 @@ export default function AdminDashboard() {
                             <tr>
                               <td colSpan={6} className="p-0">
                                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-l-4 border-blue-400">
+                                  {/* Security Warning */}
+                                  <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-red-600 text-xl">🛡️</span>
+                                      <div>
+                                        <h5 className="font-bold text-red-800">SENSITIVE INFORMATION - ADMIN ACCESS</h5>
+                                        <p className="text-sm text-red-700 mt-1">
+                                          The following information contains highly sensitive personal, financial, and identity data. 
+                                          Handle with extreme care. Never share or discuss this information outside of authorized banking operations.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {/* Personal Information */}
-                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                    <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-red-400">
                                       <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                                         <span className="text-blue-600 mr-2">👤</span>
                                         Personal Information
+                                        <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">🔒 SENSITIVE</span>
                                       </h4>
                                       <div className="space-y-2 text-sm">
                                         <div>
-                                          <span className="font-medium text-gray-600">Full Name:</span>
-                                          <span className="ml-2 text-gray-900">{user.name}</span>
+                                          <span className="font-medium text-gray-600">Full Legal Name:</span>
+                                          <span className="ml-2 text-gray-900 font-medium">{user.name}</span>
                                         </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">Email:</span>
+                                          <span className="font-medium text-gray-600">Email Address:</span>
                                           <span className="ml-2 text-gray-900">{user.email}</span>
                                         </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">Phone:</span>
+                                          <span className="font-medium text-gray-600">Phone Number:</span>
                                           <span className="ml-2 text-gray-900">{user.phone}</span>
                                         </div>
+                                        <div className="bg-red-50 p-2 rounded border border-red-200">
+                                          <span className="font-medium text-red-700">🆔 SSN/ID Number:</span>
+                                          <span className="ml-2 text-red-900 font-mono font-bold">{user.idNumber}</span>
+                                          <div className="text-xs text-red-600 mt-1">⚠️ Highly Sensitive - PII Data</div>
+                                        </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">ID Number:</span>
-                                          <span className="ml-2 text-gray-900 font-mono">{user.idNumber}</span>
+                                          <span className="font-medium text-gray-600">Registration Date:</span>
+                                          <span className="ml-2 text-gray-900">{formatDate(user.createdAt)}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Last Updated:</span>
+                                          <span className="ml-2 text-gray-900">{formatDate(user.updatedAt)}</span>
                                         </div>
                                       </div>
                                     </div>
 
                                     {/* Address Information */}
-                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                    <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-yellow-400">
                                       <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                                         <span className="text-green-600 mr-2">📍</span>
                                         Address Information
+                                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">🔒 PRIVATE</span>
                                       </h4>
                                       <div className="space-y-2 text-sm">
+                                        <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                                          <span className="font-medium text-yellow-700">🏠 Complete Address:</span>
+                                          <div className="ml-2 text-yellow-900 font-medium mt-1">
+                                            {user.address.street}<br/>
+                                            {user.address.city}, {user.address.state} {user.address.zipCode}<br/>
+                                            {user.address.country}
+                                          </div>
+                                          <div className="text-xs text-yellow-600 mt-1">⚠️ Residential Information - Handle with Care</div>
+                                        </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">Street:</span>
+                                          <span className="font-medium text-gray-600">Street Address:</span>
                                           <span className="ml-2 text-gray-900">{user.address.street}</span>
                                         </div>
                                         <div>
@@ -738,12 +804,12 @@ export default function AdminDashboard() {
                                           <span className="ml-2 text-gray-900">{user.address.city}</span>
                                         </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">State:</span>
+                                          <span className="font-medium text-gray-600">State/Province:</span>
                                           <span className="ml-2 text-gray-900">{user.address.state}</span>
                                         </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">ZIP Code:</span>
-                                          <span className="ml-2 text-gray-900">{user.address.zipCode}</span>
+                                          <span className="font-medium text-gray-600">ZIP/Postal Code:</span>
+                                          <span className="ml-2 text-gray-900 font-mono">{user.address.zipCode}</span>
                                         </div>
                                         <div>
                                           <span className="font-medium text-gray-600">Country:</span>
@@ -753,35 +819,46 @@ export default function AdminDashboard() {
                                     </div>
 
                                     {/* Account Information */}
-                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                    <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-green-400">
                                       <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                                         <span className="text-purple-600 mr-2">🏦</span>
-                                        Account Information
+                                        Financial Account Details
+                                        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">💰 FINANCIAL</span>
                                       </h4>
                                       <div className="space-y-2 text-sm">
-                                        <div>
-                                          <span className="font-medium text-gray-600">Account Number:</span>
-                                          <span className="ml-2 text-gray-900 font-mono">{user.accountNumber}</span>
+                                        <div className="bg-green-50 p-2 rounded border border-green-200">
+                                          <span className="font-medium text-green-700">🏦 Account Number:</span>
+                                          <span className="ml-2 text-green-900 font-mono font-bold text-lg">{user.accountNumber}</span>
+                                          <div className="text-xs text-green-600 mt-1">💳 BankyApp Primary Account</div>
+                                        </div>
+                                        <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                                          <span className="font-medium text-blue-700">💰 Current Balance:</span>
+                                          <span className="ml-2 text-blue-900 font-bold text-lg">{formatCurrency(user.balance)}</span>
+                                          <div className="text-xs text-blue-600 mt-1">💵 Available Funds</div>
                                         </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">Balance:</span>
-                                          <span className="ml-2 text-green-600 font-semibold">{formatCurrency(user.balance)}</span>
-                                        </div>
-                                        <div>
-                                          <span className="font-medium text-gray-600">Email Verified:</span>
+                                          <span className="font-medium text-gray-600">Email Verification:</span>
                                           <span className={`ml-2 ${user.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
-                                            {user.emailVerified ? '✅ Yes' : '❌ No'}
+                                            {user.emailVerified ? '✅ Verified' : '❌ Unverified'}
                                           </span>
                                         </div>
                                         <div>
                                           <span className="font-medium text-gray-600">Account Status:</span>
                                           <span className={`ml-2 ${user.approved ? 'text-green-600' : 'text-yellow-600'}`}>
-                                            {user.approved ? '✅ Approved' : '⏳ Pending'}
+                                            {user.approved ? '✅ Active & Approved' : '⏳ Pending Review'}
                                           </span>
                                         </div>
                                         <div>
-                                          <span className="font-medium text-gray-600">Registered:</span>
+                                          <span className="font-medium text-gray-600">Account Type:</span>
+                                          <span className="ml-2 text-gray-900">Individual Banking Account</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Account Opened:</span>
                                           <span className="ml-2 text-gray-900">{formatDate(user.createdAt)}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-600">Last Activity:</span>
+                                          <span className="ml-2 text-gray-900">{formatDate(user.updatedAt)}</span>
                                         </div>
                                       </div>
                                     </div>

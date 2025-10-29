@@ -37,6 +37,12 @@ export const RATE_LIMIT_CONFIGS = {
     maxRequests: 10, // 10 transfers per minute
   },
   
+  // Deposit operations - prevent rapid deposits
+  deposit: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 5, // 5 deposits per minute
+  },
+  
   // Registration - prevent spam accounts
   registration: {
     windowMs: 60 * 60 * 1000, // 1 hour
@@ -131,4 +137,10 @@ export const transferPerUserRateLimit = createRateLimit({
 export const emailPerAddressRateLimit = createRateLimit({
   ...RATE_LIMIT_CONFIGS.email,
   keyGenerator: (req: any) => `email:${req.body?.email || req.ip}`,
+});
+
+// Custom rate limiter for deposit operations (per user)
+export const depositRateLimit = createRateLimit({
+  ...RATE_LIMIT_CONFIGS.deposit,
+  keyGenerator: (req: any) => `deposit:${req.user?.userId || req.ip}`,
 });

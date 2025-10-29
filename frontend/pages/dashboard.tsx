@@ -13,6 +13,8 @@ interface User {
   balance: number;
   verified: boolean;
   approved: boolean;
+  idNumber: string;
+  createdAt: string;
   address?: {
     street: string;
     city: string;
@@ -72,6 +74,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [transferLoading, setTransferLoading] = useState(false);
   const [depositLoading, setDepositLoading] = useState(false);
+  const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
   
   const [transferForm, setTransferForm] = useState<TransferForm>({
     receiverAccount: '',
@@ -221,10 +224,18 @@ export default function Dashboard() {
     try {
       setDepositLoading(true);
       
-      // Simulate processing time
+      // Show processing message for 2 seconds to simulate bank processing
+      toast.loading('Processing deposit...', { id: 'deposit-processing' });
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast.success('Deposit request submitted! Processing may take 1-3 business days.', {
+      // Actually process the deposit
+      const response = await userAPI.deposit({
+        amount: amount,
+        description: 'Bank Deposit'
+      });
+      
+      toast.success('Deposit completed successfully! Your balance has been updated.', {
+        id: 'deposit-processing',
         duration: 5000,
         style: {
           background: '#10B981',
@@ -233,8 +244,18 @@ export default function Dashboard() {
       });
       
       setDepositForm({ amount: '' });
+      
+      // Refresh user data to show updated balance and transaction history
+      await fetchUserData();
+      
+      // Navigate to overview to see updated balance
+      setTimeout(() => {
+        setActiveTab('overview');
+      }, 1000);
+      
     } catch (error) {
-      toast.error('Failed to process deposit request');
+      const errorMessage = handleAPIError(error);
+      toast.error(errorMessage, { id: 'deposit-processing' });
     } finally {
       setDepositLoading(false);
     }
@@ -243,6 +264,13 @@ export default function Dashboard() {
   const handleLogout = () => {
     logout();
     router.push('/login');
+  };
+
+  // Function to mask sensitive information
+  const maskSensitiveInfo = (value: string, showFirst: number = 3, showLast: number = 4) => {
+    if (!value || value.length <= showFirst + showLast) return value;
+    const masked = '*'.repeat(value.length - showFirst - showLast);
+    return `${value.substring(0, showFirst)}${masked}${value.substring(value.length - showLast)}`;
   };
 
   if (authLoading || loading) {
@@ -299,22 +327,28 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-lg border-b border-gray-200">
-        <div className="px-6 py-4">
+      {/* Mobile-Responsive Header */}
+      <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">⚡</span>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-sm sm:text-lg">⚡</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   BankyApp
                 </h1>
-                <p className="text-sm text-gray-600">Your Digital Banking Experience</p>
+                <p className="hidden sm:block text-xs sm:text-sm text-gray-600">Your Digital Banking Experience</p>
               </div>
             </div>
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2 sm:space-x-6">
+              {/* Mobile Balance Display */}
+              <div className="block md:hidden text-right">
+                <p className="text-xs text-gray-500">Balance</p>
+                <p className="text-sm font-bold text-green-600">{formatCurrency(userDetails.balance || 0)}</p>
+              </div>
+              {/* Desktop User Info */}
               <div className="hidden md:flex items-center space-x-4">
                 <div className="text-right">
                   <div className="flex items-center space-x-2">
@@ -336,19 +370,65 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
               >
                 <span>🚪</span>
-                <span className="hidden md:inline">Logout</span>
+                <span className="hidden sm:inline text-sm">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-72 bg-white shadow-lg min-h-screen border-r border-gray-200">
+      <div className="flex flex-col lg:flex-row">
+        {/* Mobile Navigation */}
+        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex space-x-1 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'overview'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🏠 Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('deposit')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'deposit'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              💰 Deposit
+            </button>
+            <button
+              onClick={() => setActiveTab('transfer')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'transfer'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              💸 Transfer
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'history'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📋 History
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-72 bg-white shadow-lg min-h-screen border-r border-gray-200">
           <div className="p-6">
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h3>
@@ -404,53 +484,53 @@ export default function Dashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 sm:p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Account Overview</h2>
-                  <p className="text-gray-600">Welcome back, {userDetails.name}! Here's your account summary.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-4 sm:mb-0">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Account Overview</h2>
+                  <p className="text-gray-600 text-sm sm:text-base">Welcome back, {userDetails.name}! Here's your account summary.</p>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   <button
                     onClick={() => setActiveTab('deposit')}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
                   >
                     <span>💰</span>
-                    <span>Deposit</span>
+                    <span className="hidden sm:inline">Deposit</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('transfer')}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
                   >
                     <span>💸</span>
-                    <span>Transfer</span>
+                    <span className="hidden sm:inline">Transfer</span>
                   </button>
                   <button
                     onClick={fetchUserData}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200"
+                    className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
                   >
                     <span>🔄</span>
-                    <span>Refresh</span>
+                    <span className="hidden sm:inline">Refresh</span>
                   </button>
                 </div>
               </div>
 
               {/* Account Balance Card */}
-              <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white rounded-2xl p-6 shadow-xl">
+              <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white rounded-2xl p-4 sm:p-6 shadow-xl">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+                <div className="absolute top-0 right-0 w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full -mr-10 sm:-mr-16 -mt-10 sm:-mt-16"></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white/5 rounded-full -ml-8 sm:-ml-12 -mb-8 sm:-mb-12"></div>
                 <div className="relative">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
+                    <div className="mb-4 sm:mb-0">
                       <p className="text-blue-100 text-sm font-medium mb-2">Available Balance</p>
-                      <p className="text-4xl font-bold tracking-tight">{formatCurrency(userDetails.balance || 0)}</p>
+                      <p className="text-2xl sm:text-4xl font-bold tracking-tight">{formatCurrency(userDetails.balance || 0)}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <p className="text-blue-100 text-sm font-medium mb-2">Account Number</p>
-                      <p className="text-xl font-mono tracking-wider">{userDetails.accountNumber}</p>
+                      <p className="text-lg sm:text-xl font-mono tracking-wider">{userDetails.accountNumber}</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-white/20">
@@ -511,7 +591,27 @@ export default function Dashboard() {
               {/* Account Information */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                    <button
+                      onClick={() => setShowSensitiveInfo(!showSensitiveInfo)}
+                      className="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
+                    >
+                      <span>
+                        {showSensitiveInfo ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878a3 3 0 00-.007 4.243m4.242-4.242L15.536 8.464M14.122 14.122a3 3 0 01-4.243 0M14.122 14.122l4.242 4.242" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </span>
+                      <span>{showSensitiveInfo ? 'Hide' : 'Show'}</span>
+                    </button>
+                  </div>
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-gray-600">Full Name</p>
@@ -519,17 +619,42 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Email Address</p>
-                      <p className="font-medium text-gray-900">{userDetails.email}</p>
+                      <p className="font-medium text-gray-900">
+                        {showSensitiveInfo ? userDetails.email : maskSensitiveInfo(userDetails.email, 3, 8)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Phone Number</p>
-                      <p className="font-medium text-gray-900">{userDetails.phone}</p>
+                      <p className="font-medium text-gray-900">
+                        {showSensitiveInfo ? userDetails.phone : maskSensitiveInfo(userDetails.phone, 3, 4)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Social Security Number</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium text-gray-900 font-mono">
+                          {showSensitiveInfo ? userDetails.idNumber : maskSensitiveInfo(userDetails.idNumber, 3, 4)}
+                        </p>
+                        {!showSensitiveInfo && (
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                            🔒 Protected
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Account Registration Date</p>
+                      <p className="font-medium text-gray-900">{formatDate(userDetails.createdAt)}</p>
                     </div>
                     {userDetails.identity && (
                       <div>
                         <p className="text-sm text-gray-600">Identity Document</p>
                         <p className="font-medium text-gray-900">
-                          {userDetails.identity.type}: {userDetails.identity.number}
+                          {userDetails.identity.type}: {
+                            showSensitiveInfo 
+                              ? userDetails.identity.number 
+                              : maskSensitiveInfo(userDetails.identity.number, 3, 4)
+                          }
                         </p>
                       </div>
                     )}
@@ -537,12 +662,14 @@ export default function Dashboard() {
                 </div>
 
                 <div className="card">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address & Account Details</h3>
                   {userDetails.address ? (
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm text-gray-600">Street Address</p>
-                        <p className="font-medium text-gray-900">{userDetails.address.street}</p>
+                        <p className="font-medium text-gray-900">
+                          {showSensitiveInfo ? userDetails.address.street : maskSensitiveInfo(userDetails.address.street, 6, 0)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">City</p>
@@ -554,16 +681,175 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">ZIP Code / Postal Code</p>
-                        <p className="font-medium text-gray-900">{userDetails.address.zipCode}</p>
+                        <p className="font-medium text-gray-900">
+                          {showSensitiveInfo ? userDetails.address.zipCode : maskSensitiveInfo(userDetails.address.zipCode, 2, 0)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Country</p>
                         <p className="font-medium text-gray-900">{userDetails.address.country}</p>
                       </div>
+                      
+                      {/* Account Security Information */}
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Account Security</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <span className="text-sm text-gray-600">Email Verification</span>
+                            <span className={`badge ${userDetails.verified ? 'badge-success' : 'badge-warning'}`}>
+                              {userDetails.verified ? '✅ Verified' : '⏳ Pending'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <span className="text-sm text-gray-600">Account Approval</span>
+                            <span className={`badge ${userDetails.approved ? 'badge-success' : 'badge-warning'}`}>
+                              {userDetails.approved ? '✅ Approved' : '⏳ Pending Review'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <span className="text-sm text-gray-600">Account Type</span>
+                            <span className="badge badge-info">Individual Banking</span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <span className="text-sm text-gray-600">Security Level</span>
+                            <span className="badge badge-success">🔒 High Security</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-gray-500 italic">Address information not available</p>
                   )}
+                </div>
+              </div>
+
+              {/* Sensitive Information Panel */}
+              <div className="card bg-gradient-to-r from-red-50 to-pink-50 border-red-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <span className="text-red-600 text-xl">🛡️</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Sensitive Information</h3>
+                      <p className="text-sm text-gray-600">Complete personal and financial details</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-medium">
+                      🔐 Protected Data
+                    </span>
+                    <button
+                      onClick={() => setShowSensitiveInfo(!showSensitiveInfo)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                        showSensitiveInfo
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-gray-600 hover:bg-gray-700 text-white'
+                      }`}
+                    >
+                      {showSensitiveInfo ? '🔒 Hide Details' : '👁️ Show Details'}
+                    </button>
+                  </div>
+                </div>
+                
+                {showSensitiveInfo ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Financial Information */}
+                    <div className="p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <span className="text-green-600 mr-2">💰</span>
+                        Financial Details
+                      </h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs text-gray-600">Account Number</p>
+                          <p className="font-mono text-sm font-medium">{userDetails.accountNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600">Current Balance</p>
+                          <p className="text-sm font-bold text-green-600">{formatCurrency(userDetails.balance || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600">Account Status</p>
+                          <p className="text-sm font-medium text-blue-600">Active & Operational</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Identity Information */}
+                    <div className="p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <span className="text-blue-600 mr-2">🆔</span>
+                        Identity Details
+                      </h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs text-gray-600">Full Legal Name</p>
+                          <p className="text-sm font-medium">{userDetails.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600">Social Security Number</p>
+                          <p className="font-mono text-sm font-medium text-red-700">{userDetails.idNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600">Phone Number</p>
+                          <p className="text-sm font-medium">{userDetails.phone}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact & Address */}
+                    <div className="p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <span className="text-purple-600 mr-2">📍</span>
+                        Contact Information
+                      </h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs text-gray-600">Email Address</p>
+                          <p className="text-sm font-medium break-all">{userDetails.email}</p>
+                        </div>
+                        {userDetails.address && (
+                          <>
+                            <div>
+                              <p className="text-xs text-gray-600">Full Address</p>
+                              <p className="text-sm font-medium">
+                                {userDetails.address.street}, {userDetails.address.city}, {userDetails.address.state} {userDetails.address.zipCode}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600">Country</p>
+                              <p className="text-sm font-medium">{userDetails.address.country}</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-gray-400 text-2xl">🔒</span>
+                    </div>
+                    <p className="text-gray-600 font-medium">Sensitive information is hidden for security</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Click "Show Details" to view your complete personal and financial information
+                    </p>
+                  </div>
+                )}
+
+                {/* Security Notice */}
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-yellow-600 text-sm mt-0.5">⚠️</span>
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">Security Notice</p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        This information is highly sensitive. Never share your SSN, account details, or personal information with anyone. 
+                        BankyApp will never ask for this information via email or phone.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 

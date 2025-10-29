@@ -5,6 +5,7 @@ import Transaction from '../../../models/Transaction';
 import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
 import { transferPerUserRateLimit } from '../../../middleware/rateLimit';
 import { sanitizeAccountNumber, sanitizeBankyAppAccountNumber, sanitizeNarration } from '../../../utils/sanitize';
+import { scheduleTransferCompletion } from '../../../lib/autoCompleteTransfers';
 import Joi from 'joi';
 
 // Validation schema
@@ -172,16 +173,20 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             { session }
           );
 
-          // Create completed transaction record
+          // Create completed transaction record with user names
           const transaction = new Transaction({
             senderId: userId,
+            receiverId: receiverUser._id,
             senderAccount: userAccountNumber,
             receiverAccount: sanitizedReceiverAccount,
+            senderName: user.name,
+            receiverName: receiverUser.name,
             amount,
             type,
             status: 'completed',
             narration: sanitizedNarration,
             completedAt: new Date(),
+            transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 
           await transaction.save({ session });
@@ -196,15 +201,23 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
 
           const transaction = new Transaction({
             senderId: userId,
+            receiverId: null, // External transfers have no internal receiver
             senderAccount: userAccountNumber,
             receiverAccount: sanitizedReceiverAccount,
+            senderName: user.name,
+            receiverName: 'External Bank Account',
             amount,
             type,
             status: 'pending',
             narration: sanitizedNarration,
+            transactionId: `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 
           await transaction.save({ session });
+          
+          // Schedule auto-completion for external transfer
+          scheduleTransferCompletion(transaction._id.toString());
+          
           return transaction;
         }
       });

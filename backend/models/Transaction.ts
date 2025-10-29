@@ -2,13 +2,17 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ITransaction extends Document {
   _id: string;
-  senderId: mongoose.Types.ObjectId;
+  senderId?: mongoose.Types.ObjectId;
+  receiverId?: mongoose.Types.ObjectId;
   senderAccount: string;
   receiverAccount: string;
+  senderName?: string;
+  receiverName?: string;
   amount: number;
-  type: 'internal' | 'external';
+  type: 'internal' | 'external' | 'deposit';
   status: 'pending' | 'completed' | 'failed';
   narration?: string;
+  transactionId?: string;
   completedAt?: Date;
   completedBy?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -19,17 +23,28 @@ const TransactionSchema = new Schema<ITransaction>({
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Sender ID is required']
+    required: false // Not required for deposits
+  },
+  receiverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Not required for external transfers
   },
   senderAccount: {
     type: String,
-    required: [true, 'Sender account is required'],
-    match: [/^\d{10}$/, 'Sender account must be 10 digits']
+    required: [true, 'Sender account is required']
   },
   receiverAccount: {
     type: String,
-    required: [true, 'Receiver account is required'],
-    match: [/^\d{10}$/, 'Receiver account must be 10 digits']
+    required: [true, 'Receiver account is required']
+  },
+  senderName: {
+    type: String,
+    trim: true
+  },
+  receiverName: {
+    type: String,
+    trim: true
   },
   amount: {
     type: Number,
@@ -40,8 +55,8 @@ const TransactionSchema = new Schema<ITransaction>({
   type: {
     type: String,
     enum: {
-      values: ['internal', 'external'],
-      message: 'Type must be either internal or external'
+      values: ['internal', 'external', 'deposit'],
+      message: 'Type must be internal, external, or deposit'
     },
     required: [true, 'Transaction type is required']
   },
@@ -57,6 +72,11 @@ const TransactionSchema = new Schema<ITransaction>({
     type: String,
     maxlength: [500, 'Narration cannot exceed 500 characters'],
     trim: true
+  },
+  transactionId: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   completedAt: Date,
   completedBy: {

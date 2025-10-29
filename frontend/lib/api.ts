@@ -82,6 +82,11 @@ export const userAPI = {
     narration?: string;
     type?: 'internal' | 'external';
   }) => api.post('/api/user/transfer', transferData),
+  
+  deposit: (depositData: {
+    amount: number;
+    description?: string;
+  }) => api.post('/api/user/deposit', depositData),
 };
 
 // Admin API functions
@@ -96,6 +101,12 @@ export const adminAPI = {
   getTransactions: () => api.get('/api/admin/transactions'),
   
   testEmail: (email: string) => api.post('/api/admin/test-email', { email }),
+  
+  changePassword: (passwordData: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => api.post('/api/admin/change-password', passwordData),
 };
 
 // Generic error handler
