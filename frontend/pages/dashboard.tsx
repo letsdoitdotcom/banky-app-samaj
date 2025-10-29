@@ -187,9 +187,7 @@ export default function Dashboard() {
         type: transferType
       });
 
-      const successMessage = transferType === 'internal' 
-        ? 'Internal transfer completed successfully!'
-        : 'External transfer initiated successfully! Processing may take 1-3 business days.';
+      const successMessage = 'Transfer request submitted successfully! Awaiting admin approval.';
       
       toast.success(successMessage, { duration: 5000 });
       setTransferForm({ receiverAccount: '', amount: '', narration: '', bankName: '' });
@@ -1074,8 +1072,8 @@ export default function Dashboard() {
                     {transferForm.bankName && (
                       <p className="text-xs text-gray-600 mt-1">
                         {transferForm.bankName === 'BankyApp' 
-                          ? '✅ Internal transfer - Instant processing' 
-                          : '⚠️ External transfer - 1-3 business days processing'
+                          ? '🏦 BankyApp transfer - Requires admin approval' 
+                          : '⚠️ External transfer - Requires admin approval'
                         }
                       </p>
                     )}
@@ -1138,27 +1136,27 @@ export default function Dashboard() {
 
                   <div className={`border rounded-lg p-4 ${
                     transferForm.bankName === 'BankyApp' 
-                      ? 'bg-green-50 border-green-200' 
+                      ? 'bg-blue-50 border-blue-200' 
                       : 'bg-yellow-50 border-yellow-200'
                   }`}>
                     <div className="flex">
                       <span className={`text-xl mr-3 ${
-                        transferForm.bankName === 'BankyApp' ? 'text-green-600' : 'text-yellow-600'
+                        transferForm.bankName === 'BankyApp' ? 'text-blue-600' : 'text-yellow-600'
                       }`}>
-                        {transferForm.bankName === 'BankyApp' ? '✅' : '⚠️'}
+                        {transferForm.bankName === 'BankyApp' ? '🏦' : '⚠️'}
                       </span>
                       <div>
                         <h4 className={`text-sm font-medium ${
-                          transferForm.bankName === 'BankyApp' ? 'text-green-800' : 'text-yellow-800'
+                          transferForm.bankName === 'BankyApp' ? 'text-blue-800' : 'text-yellow-800'
                         }`}>
-                          {transferForm.bankName === 'BankyApp' ? 'Internal Transfer' : 'External Transfer Notice'}
+                          {transferForm.bankName === 'BankyApp' ? 'BankyApp Transfer' : 'External Transfer Notice'}
                         </h4>
                         <p className={`text-sm mt-1 ${
-                          transferForm.bankName === 'BankyApp' ? 'text-green-700' : 'text-yellow-700'
+                          transferForm.bankName === 'BankyApp' ? 'text-blue-700' : 'text-yellow-700'
                         }`}>
                           {transferForm.bankName === 'BankyApp' 
-                            ? 'This transfer will be processed instantly and completed immediately.'
-                            : 'External transfers may take 1-3 business days to process. Please verify the account number carefully as transfers cannot be reversed once processed.'
+                            ? 'Transfer requests require admin approval before processing.'
+                            : 'External transfers require admin approval and may take 1-3 business days to process. Please verify the account number carefully as transfers cannot be reversed once approved.'
                           }
                         </p>
                       </div>
