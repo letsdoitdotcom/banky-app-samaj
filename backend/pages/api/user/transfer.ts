@@ -195,6 +195,9 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             beneficiaryName: sanitizedBeneficiaryName,
             transferReference: sanitizedTransferReference,
             purposeOfTransfer: sanitizedPurposeOfTransfer,
+            beneficiaryName: sanitizedBeneficiaryName,
+            transferReference: sanitizedTransferReference,
+            purposeOfTransfer: sanitizedPurposeOfTransfer,
             transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 

@@ -261,7 +261,8 @@ export default function AdminDashboard() {
     try {
       await adminAPI.changePassword({
         currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword
+        newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword
       });
       
       toast.success('Password changed successfully!');
