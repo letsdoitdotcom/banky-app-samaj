@@ -53,7 +53,7 @@ interface DepositForm {
 
 // Bank options for transfers
 const BANK_OPTIONS = [
-  { value: 'BankyApp', label: 'BankyApp (Internal)' },
+  { value: 'LumaTrust', label: 'LumaTrust (Internal)' },
   { value: 'Chase', label: 'Chase Bank' },
   { value: 'BankOfAmerica', label: 'Bank of America' },
   { value: 'Wells Fargo', label: 'Wells Fargo' },
@@ -62,7 +62,22 @@ const BANK_OPTIONS = [
   { value: 'PNC', label: 'PNC Bank' },
   { value: 'Capital One', label: 'Capital One' },
   { value: 'TD Bank', label: 'TD Bank' },
-  { value: 'Truist', label: 'Truist Bank' }
+  { value: 'Truist', label: 'Truist Bank' },
+  { value: 'Goldman Sachs', label: 'Goldman Sachs Bank' },
+  { value: 'Morgan Stanley', label: 'Morgan Stanley Bank' },
+  { value: 'American Express', label: 'American Express Bank' },
+  { value: 'HSBC', label: 'HSBC Bank USA' },
+  { value: 'Fifth Third', label: 'Fifth Third Bank' },
+  { value: 'Regions', label: 'Regions Bank' },
+  { value: 'KeyBank', label: 'KeyBank' },
+  { value: 'Citizens', label: 'Citizens Bank' },
+  { value: 'Huntington', label: 'Huntington Bank' },
+  { value: 'M&T Bank', label: 'M&T Bank' },
+  { value: 'Ally Bank', label: 'Ally Bank' },
+  { value: 'Discover Bank', label: 'Discover Bank' },
+  { value: 'Charles Schwab', label: 'Charles Schwab Bank' },
+  { value: 'Navy Federal', label: 'Navy Federal Credit Union' },
+  { value: 'USAA', label: 'USAA Bank' }
 ];
 
 export default function Dashboard() {
@@ -176,7 +191,7 @@ export default function Dashboard() {
     }
 
     // Determine if it's internal or external transfer
-    const transferType = transferForm.bankName === 'BankyApp' ? 'internal' : 'external';
+    const transferType = transferForm.bankName === 'LumaTrust' ? 'internal' : 'external';
 
     try {
       setTransferLoading(true);
@@ -233,7 +248,7 @@ export default function Dashboard() {
         description: 'Bank Deposit'
       });
       
-      toast.success('Deposit completed successfully! Your balance has been updated.', {
+      toast.success('Deposit request submitted successfully! It is now under review and will be processed by admin approval.', {
         id: 'deposit-processing',
         duration: 5000,
         style: {
@@ -347,7 +362,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  BankyApp
+                  LumaTrust
                 </h1>
                 <p className="hidden sm:block text-xs sm:text-sm text-gray-600">Your Digital Banking Experience</p>
               </div>
@@ -382,7 +397,7 @@ export default function Dashboard() {
                 onClick={handleLogout}
                 className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
               >
-                <span>🚪</span>
+                <span>⏻</span>
                 <span className="hidden sm:inline text-sm">Logout</span>
               </button>
             </div>
@@ -857,7 +872,7 @@ export default function Dashboard() {
                       <p className="text-sm font-medium text-yellow-800">Security Notice</p>
                       <p className="text-xs text-yellow-700 mt-1">
                         This information is highly sensitive. Never share your SSN, account details, or personal information with anyone. 
-                        BankyApp will never ask for this information via email or phone.
+                        LumaTrust will never ask for this information via email or phone.
                       </p>
                     </div>
                   </div>
@@ -986,48 +1001,7 @@ export default function Dashboard() {
                 </form>
               </div>
 
-              {/* Deposit Methods Info */}
-              <div className="card">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Deposit Methods</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="p-2 rounded-full bg-blue-100">
-                      <span className="text-blue-600">🏧</span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="font-medium text-gray-900">Bank Transfer</p>
-                      <p className="text-xs text-gray-600">1-3 business days</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="p-2 rounded-full bg-green-100">
-                      <span className="text-green-600">💳</span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="font-medium text-gray-900">Debit Card</p>
-                      <p className="text-xs text-gray-600">Instant - 1 day</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="p-2 rounded-full bg-purple-100">
-                      <span className="text-purple-600">📱</span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="font-medium text-gray-900">Mobile Check</p>
-                      <p className="text-xs text-gray-600">1-2 business days</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="p-2 rounded-full bg-yellow-100">
-                      <span className="text-yellow-600">🏪</span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="font-medium text-gray-900">Cash Deposit</p>
-                      <p className="text-xs text-gray-600">Same day</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+
             </div>
           )}
 
@@ -1071,8 +1045,8 @@ export default function Dashboard() {
                     </select>
                     {transferForm.bankName && (
                       <p className="text-xs text-gray-600 mt-1">
-                        {transferForm.bankName === 'BankyApp' 
-                          ? '🏦 BankyApp transfer - Requires admin approval' 
+                        {transferForm.bankName === 'LumaTrust' 
+                          ? '🏦 LumaTrust transfer - Requires admin approval' 
                           : '⚠️ External transfer - Requires admin approval'
                         }
                       </p>
@@ -1091,9 +1065,9 @@ export default function Dashboard() {
                       placeholder="Enter recipient's account number"
                       required
                     />
-                    {transferForm.bankName === 'BankyApp' && (
+                    {transferForm.bankName === 'LumaTrust' && (
                       <p className="text-xs text-gray-600 mt-1">
-                        Must be a valid BankyApp account number (10 digits)
+                        Must be a valid LumaTrust account number (10 digits)
                       </p>
                     )}
                   </div>
@@ -1135,26 +1109,26 @@ export default function Dashboard() {
                   </div>
 
                   <div className={`border rounded-lg p-4 ${
-                    transferForm.bankName === 'BankyApp' 
+                    transferForm.bankName === 'LumaTrust' 
                       ? 'bg-blue-50 border-blue-200' 
                       : 'bg-yellow-50 border-yellow-200'
                   }`}>
                     <div className="flex">
                       <span className={`text-xl mr-3 ${
-                        transferForm.bankName === 'BankyApp' ? 'text-blue-600' : 'text-yellow-600'
+                        transferForm.bankName === 'LumaTrust' ? 'text-blue-600' : 'text-yellow-600'
                       }`}>
-                        {transferForm.bankName === 'BankyApp' ? '🏦' : '⚠️'}
+                        {transferForm.bankName === 'LumaTrust' ? '🏦' : '⚠️'}
                       </span>
                       <div>
                         <h4 className={`text-sm font-medium ${
-                          transferForm.bankName === 'BankyApp' ? 'text-blue-800' : 'text-yellow-800'
+                          transferForm.bankName === 'LumaTrust' ? 'text-blue-800' : 'text-yellow-800'
                         }`}>
-                          {transferForm.bankName === 'BankyApp' ? 'BankyApp Transfer' : 'External Transfer Notice'}
+                          {transferForm.bankName === 'LumaTrust' ? 'LumaTrust Transfer' : 'External Transfer Notice'}
                         </h4>
                         <p className={`text-sm mt-1 ${
-                          transferForm.bankName === 'BankyApp' ? 'text-blue-700' : 'text-yellow-700'
+                          transferForm.bankName === 'LumaTrust' ? 'text-blue-700' : 'text-yellow-700'
                         }`}>
-                          {transferForm.bankName === 'BankyApp' 
+                          {transferForm.bankName === 'LumaTrust' 
                             ? 'Transfer requests require admin approval before processing.'
                             : 'External transfers require admin approval and may take 1-3 business days to process. Please verify the account number carefully as transfers cannot be reversed once approved.'
                           }

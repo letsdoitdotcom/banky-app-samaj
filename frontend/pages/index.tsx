@@ -30,7 +30,7 @@ export default function Home() {
             <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">B</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">BankyApp</span>
+            <span className="text-2xl font-bold text-gray-900">LumaTrust</span>
           </div>
           
           <div className="flex space-x-4">
@@ -52,7 +52,7 @@ export default function Home() {
             <span className="text-primary-600"> Simplified</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Experience modern banking with BankyApp. Secure, fast, and intuitive 
+            Experience modern banking with LumaTrust. Secure, fast, and intuitive 
             financial services designed for the digital age.
           </p>
 
@@ -143,7 +143,7 @@ export default function Home() {
                 <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold">B</span>
                 </div>
-                <span className="text-xl font-bold">BankyApp</span>
+                <span className="text-xl font-bold">LumaTrust</span>
               </div>
               <p className="text-gray-400">
                 Modern banking solutions for the digital world.
@@ -188,7 +188,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 BankyApp. All rights reserved. | Banking Simulation Platform</p>
+            <p>&copy; 2024 LumaTrust. All rights reserved. | Banking Simulation Platform</p>
           </div>
         </div>
       </footer>

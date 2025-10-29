@@ -59,7 +59,7 @@ export default function Login() {
             <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">B</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">BankyApp</span>
+            <span className="text-2xl font-bold text-gray-900">LumaTrust</span>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to your account</p>

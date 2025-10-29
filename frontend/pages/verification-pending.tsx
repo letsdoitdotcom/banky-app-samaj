@@ -11,7 +11,7 @@ export default function VerificationPending() {
             <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">B</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">BankyApp</span>
+            <span className="text-2xl font-bold text-gray-900">LumaTrust</span>
           </Link>
         </div>
 
@@ -29,7 +29,7 @@ export default function VerificationPending() {
           </h1>
           
           <p className="text-gray-600 mb-6">
-            Thank you for registering with BankyApp! We've sent a verification email to your inbox. 
+            Thank you for registering with LumaTrust! We've sent a verification email to your inbox. 
             <strong>Please verify your email to make your account eligible for approval.</strong>
           </p>
 
@@ -77,8 +77,8 @@ export default function VerificationPending() {
         <div className="text-center mt-6">
           <p className="text-gray-600 text-sm">
             Need help? Contact our support team at{' '}
-            <a href="mailto:support@bankyapp.com" className="text-primary-600 hover:text-primary-700">
-              support@bankyapp.com
+            <a href="mailto:support@lumatrust.com" className="text-primary-600 hover:text-primary-700">
+              support@lumatrust.com
             </a>
           </p>
         </div>

@@ -44,7 +44,7 @@ export const sendVerificationEmail = async (
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Verify Your BankyApp Email</title>
+      <title>Verify Your LumaTrust Email</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f7f9fc; }
         .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
@@ -62,14 +62,14 @@ export const sendVerificationEmail = async (
     <body>
       <div class="container">
         <div class="header">
-          <h1>🏦 Welcome to BankyApp!</h1>
+          <h1>🏦 Welcome to LumaTrust!</h1>
         </div>
         
         <div class="content">
           <h2 style="color: #1f2937; margin-bottom: 16px;">Hello ${escapeHtml(sanitizedName)}!</h2>
           
           <p style="color: #4b5563; margin-bottom: 24px;">
-            Thank you for registering with BankyApp! To complete your registration and make your account 
+            Thank you for registering with LumaTrust! To complete your registration and make your account 
             eligible for admin review, please verify your email address.
           </p>
           
@@ -129,7 +129,7 @@ export const sendVerificationEmail = async (
         </div>
         
         <div class="footer">
-          <p>© 2024 BankyApp - Professional Banking Simulation Platform</p>
+          <p>© 2024 LumaTrust - Professional Banking Simulation Platform</p>
           <p>This email was sent to ${escapeHtml(sanitizedEmail)}. If you didn't request this, please ignore this email.</p>
         </div>
       </div>
@@ -138,9 +138,9 @@ export const sendVerificationEmail = async (
   `;
 
   const mailOptions = {
-    from: `"BankyApp - Email Verification" <${process.env.EMAIL_USER}>`,
+    from: `"LumaTrust - Email Verification" <${process.env.EMAIL_USER}>`,
     to: sanitizedEmail,
-    subject: '🏦 Verify Your BankyApp Email Address',
+    subject: '🏦 Verify Your LumaTrust Email Address',
     html: htmlContent,
   };
 

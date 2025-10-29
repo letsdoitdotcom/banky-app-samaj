@@ -1,7 +1,7 @@
 {
   "name": "banky-frontend",
   "version": "1.0.0",
-  "description": "BankyApp Frontend - Netlify Deployment",
+  "description": "LumaTrust Frontend - Netlify Deployment",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",

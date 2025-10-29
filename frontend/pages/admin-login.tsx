@@ -52,7 +52,7 @@ export default function AdminLogin() {
             Admin Portal
           </h2>
           <p className="text-gray-300">
-            Secure administrator access to BankyApp
+            Secure administrator access to LumaTrust
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export default function AdminLogin() {
                   }
                 })}
                 className={`input ${errors.email ? 'input-error' : ''}`}
-                placeholder="admin@bankyapp.com"
+                placeholder="admin@lumatrust.com"
               />
               {errors.email && <p className="form-error">{errors.email.message}</p>}
             </div>
@@ -141,7 +141,7 @@ export default function AdminLogin() {
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="text-blue-800 font-medium text-sm mb-2">Demo Credentials</h4>
             <div className="text-blue-700 text-xs space-y-1">
-              <p><strong>Email:</strong> admin@bankyapp.com</p>
+              <p><strong>Email:</strong> admin@lumatrust.com</p>
               <p><strong>Password:</strong> admin123</p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function AdminLogin() {
           {/* Back to main site */}
           <div className="mt-6 text-center">
             <Link href="/" className="text-gray-600 hover:text-gray-500 text-sm">
-              ← Back to BankyApp
+              ← Back to LumaTrust
             </Link>
           </div>
         </div>

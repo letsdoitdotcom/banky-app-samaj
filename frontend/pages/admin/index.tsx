@@ -258,7 +258,7 @@ export default function AdminDashboard() {
                 <span className="text-white font-bold">⚡</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">BankyApp Admin</h1>
+                <h1 className="text-xl font-bold text-gray-900">LumaTrust Admin</h1>
                 <p className="text-sm text-gray-600">Administrator Dashboard</p>
               </div>
             </Link>
@@ -867,7 +867,7 @@ export default function AdminDashboard() {
                                         <div className="bg-green-50 p-2 rounded border border-green-200">
                                           <span className="font-medium text-green-700">🏦 Account Number:</span>
                                           <span className="ml-2 text-green-900 font-mono font-bold text-lg">{user.accountNumber}</span>
-                                          <div className="text-xs text-green-600 mt-1">💳 BankyApp Primary Account</div>
+                                          <div className="text-xs text-green-600 mt-1">💳 LumaTrust Primary Account</div>
                                         </div>
                                         <div className="bg-blue-50 p-2 rounded border border-blue-200">
                                           <span className="font-medium text-blue-700">💰 Current Balance:</span>

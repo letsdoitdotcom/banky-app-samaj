@@ -75,7 +75,7 @@ export default function VerifyEmail() {
                 <li>1. Our admin team will review your account</li>
                 <li>2. You'll receive an email once approved</li>
                 <li>3. Login to access your $1,000 welcome balance</li>
-                <li>4. Start banking with BankyApp!</li>
+                <li>4. Start banking with LumaTrust!</li>
               </ol>
             </div>
             <div className="space-y-3">
