@@ -28,6 +28,24 @@ const transferSchema = Joi.object({
   narration: Joi.string().max(500).optional().messages({
     'string.max': 'Description cannot exceed 500 characters'
   }),
+  beneficiaryName: Joi.string().min(2).max(100).required().messages({
+    'string.empty': 'Beneficiary name is required',
+    'string.min': 'Beneficiary name must be at least 2 characters',
+    'string.max': 'Beneficiary name cannot exceed 100 characters',
+    'any.required': 'Please enter the beneficiary name'
+  }),
+  transferReference: Joi.string().min(3).max(50).required().messages({
+    'string.empty': 'Transfer reference is required',
+    'string.min': 'Transfer reference must be at least 3 characters',
+    'string.max': 'Transfer reference cannot exceed 50 characters',
+    'any.required': 'Please enter a transfer reference'
+  }),
+  purposeOfTransfer: Joi.string().min(3).max(200).required().messages({
+    'string.empty': 'Purpose of transfer is required',
+    'string.min': 'Purpose must be at least 3 characters',
+    'string.max': 'Purpose cannot exceed 200 characters',
+    'any.required': 'Please specify the purpose of transfer'
+  }),
 });
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
@@ -70,7 +88,7 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
       });
     }
 
-    const { receiverAccount, amount, type, narration } = value;
+    const { receiverAccount, amount, type, narration, beneficiaryName, transferReference, purposeOfTransfer } = value;
 
     // Sanitize inputs based on transfer type
     let sanitizedReceiverAccount: string;
@@ -96,6 +114,9 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
     }
     
     const sanitizedNarration = sanitizeNarration(narration || '');
+    const sanitizedBeneficiaryName = beneficiaryName.trim().replace(/\s+/g, ' ');
+    const sanitizedTransferReference = transferReference.trim().replace(/\s+/g, ' ');
+    const sanitizedPurposeOfTransfer = purposeOfTransfer.trim().replace(/\s+/g, ' ');
 
     // Check if trying to transfer to same account
     if (sanitizedReceiverAccount === userAccountNumber) {
@@ -171,6 +192,9 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             type,
             status: 'pending', // Changed to pending - requires admin approval
             narration: sanitizedNarration,
+            beneficiaryName: sanitizedBeneficiaryName,
+            transferReference: sanitizedTransferReference,
+            purposeOfTransfer: sanitizedPurposeOfTransfer,
             transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 
@@ -184,11 +208,14 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             senderAccount: userAccountNumber,
             receiverAccount: sanitizedReceiverAccount,
             senderName: user.name,
-            receiverName: 'External Bank Account',
+            receiverName: sanitizedBeneficiaryName,
             amount,
             type,
             status: 'pending', // Changed to pending - requires admin approval
             narration: sanitizedNarration,
+            beneficiaryName: sanitizedBeneficiaryName,
+            transferReference: sanitizedTransferReference,
+            purposeOfTransfer: sanitizedPurposeOfTransfer,
             transactionId: `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 

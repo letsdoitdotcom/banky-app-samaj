@@ -13,6 +13,9 @@ export interface ITransaction extends Document {
   status: 'pending' | 'completed' | 'failed';
   narration?: string;
   transactionId?: string;
+  beneficiaryName?: string;
+  transferReference?: string;
+  purposeOfTransfer?: string;
   completedAt?: Date;
   completedBy?: mongoose.Types.ObjectId;
   adminComment?: string;
@@ -74,6 +77,21 @@ const TransactionSchema = new Schema<ITransaction>({
   narration: {
     type: String,
     maxlength: [500, 'Narration cannot exceed 500 characters'],
+    trim: true
+  },
+  beneficiaryName: {
+    type: String,
+    maxlength: [100, 'Beneficiary name cannot exceed 100 characters'],
+    trim: true
+  },
+  transferReference: {
+    type: String,
+    maxlength: [50, 'Transfer reference cannot exceed 50 characters'],
+    trim: true
+  },
+  purposeOfTransfer: {
+    type: String,
+    maxlength: [200, 'Purpose of transfer cannot exceed 200 characters'],
     trim: true
   },
   transactionId: {

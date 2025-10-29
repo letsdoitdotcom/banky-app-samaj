@@ -45,6 +45,9 @@ interface TransferForm {
   amount: string;
   narration: string;
   bankName: string;
+  beneficiaryName: string;
+  transferReference: string;
+  purposeOfTransfer: string;
 }
 
 interface DepositForm {
@@ -96,12 +99,22 @@ export default function Dashboard() {
     receiverAccount: '',
     amount: '',
     narration: '',
-    bankName: ''
+    bankName: '',
+    beneficiaryName: '',
+    transferReference: '',
+    purposeOfTransfer: ''
   });
 
   const [depositForm, setDepositForm] = useState<DepositForm>({
     amount: ''
   });
+
+  // Generate unique transfer reference
+  const generateTransferReference = () => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substr(2, 4).toUpperCase();
+    return `TXN-${timestamp}-${random}`;
+  };
 
   useEffect(() => {
     // Don't redirect if we're still loading auth state
@@ -174,7 +187,8 @@ export default function Dashboard() {
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!transferForm.bankName || !transferForm.receiverAccount || !transferForm.amount) {
+    if (!transferForm.bankName || !transferForm.receiverAccount || !transferForm.amount || 
+        !transferForm.beneficiaryName || !transferForm.transferReference || !transferForm.purposeOfTransfer) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -199,13 +213,24 @@ export default function Dashboard() {
         receiverAccount: transferForm.receiverAccount,
         amount: amount,
         narration: transferForm.narration,
-        type: transferType
+        type: transferType,
+        beneficiaryName: transferForm.beneficiaryName,
+        transferReference: transferForm.transferReference,
+        purposeOfTransfer: transferForm.purposeOfTransfer
       });
 
       const successMessage = 'Transfer request submitted successfully! Awaiting admin approval.';
       
       toast.success(successMessage, { duration: 5000 });
-      setTransferForm({ receiverAccount: '', amount: '', narration: '', bankName: '' });
+      setTransferForm({ 
+        receiverAccount: '', 
+        amount: '', 
+        narration: '', 
+        bankName: '',
+        beneficiaryName: '',
+        transferReference: '',
+        purposeOfTransfer: ''
+      });
       setActiveTab('history');
       fetchUserData(); // Refresh data
     } catch (error) {
@@ -1074,6 +1099,24 @@ export default function Dashboard() {
 
                   <div>
                     <label className="form-label">
+                      Beneficiary Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={transferForm.beneficiaryName}
+                      onChange={(e) => setTransferForm({ ...transferForm, beneficiaryName: e.target.value })}
+                      className="form-input"
+                      placeholder="Enter recipient's full name"
+                      required
+                      maxLength={100}
+                    />
+                    <p className="text-xs text-gray-600 mt-1">
+                      Full name of the person receiving the transfer
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="form-label">
                       Amount *
                     </label>
                     <div className="relative">
@@ -1097,14 +1140,70 @@ export default function Dashboard() {
 
                   <div>
                     <label className="form-label">
-                      Description (Optional)
+                      Transfer Reference *
+                    </label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={transferForm.transferReference}
+                        onChange={(e) => setTransferForm({ ...transferForm, transferReference: e.target.value })}
+                        className="form-input flex-1"
+                        placeholder="Enter a unique reference (e.g., INV001, RENT-NOV)"
+                        required
+                        maxLength={50}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setTransferForm({ ...transferForm, transferReference: generateTransferReference() })}
+                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm whitespace-nowrap"
+                      >
+                        Auto Generate
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Unique identifier for this transfer (3-50 characters)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="form-label">
+                      Purpose of Transfer *
+                    </label>
+                    <select
+                      value={transferForm.purposeOfTransfer}
+                      onChange={(e) => setTransferForm({ ...transferForm, purposeOfTransfer: e.target.value })}
+                      className="form-input"
+                      required
+                    >
+                      <option value="">Select purpose of transfer</option>
+                      <option value="Business Payment">Business Payment</option>
+                      <option value="Personal Transfer">Personal Transfer</option>
+                      <option value="Bill Payment">Bill Payment</option>
+                      <option value="Loan Repayment">Loan Repayment</option>
+                      <option value="Investment">Investment</option>
+                      <option value="Family Support">Family Support</option>
+                      <option value="Gift">Gift</option>
+                      <option value="Salary Payment">Salary Payment</option>
+                      <option value="Rent Payment">Rent Payment</option>
+                      <option value="Purchase Payment">Purchase Payment</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Specify the reason for this transfer
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="form-label">
+                      Additional Notes (Optional)
                     </label>
                     <textarea
                       value={transferForm.narration}
                       onChange={(e) => setTransferForm({ ...transferForm, narration: e.target.value })}
                       className="form-input"
                       rows={3}
-                      placeholder="What's this transfer for?"
+                      placeholder="Any additional details about this transfer..."
+                      maxLength={500}
                     />
                   </div>
 
