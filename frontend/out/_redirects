@@ -1,0 +1,15 @@
+# Netlify redirects for Single Page Application (SPA)
+# This handles client-side routing by redirecting all non-file requests to index.html
+
+# Redirect all routes to index.html for SPA routing
+/*    /index.html   200
+
+# API routes should go to backend (if any are accidentally routed here)
+/api/*  https://banky-app-samaj.vercel.app/api/:splat  200
+
+# Admin routes - handle client-side routing
+/admin/*  /index.html  200
+/dashboard/*  /index.html  200
+/login  /index.html  200
+/register  /index.html  200
+/verify-email  /index.html  200

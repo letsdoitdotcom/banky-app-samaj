@@ -11,10 +11,11 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {
     await connectDB();
 
-    // Get all transactions with sender details
+    // Get all transactions with sender and receiver details
     const transactions = await Transaction.find()
-      .populate('senderId', 'name email')
-      .populate('completedBy', 'name email')
+      .populate('senderId', 'name email accountNumber')
+      .populate('receiverId', 'name email accountNumber')
+      .populate('processedBy', 'name email')
       .sort({ createdAt: -1 })
       .limit(100)
       .lean();
@@ -60,9 +61,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       stats: transactionStats,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get transactions error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }
 

@@ -50,7 +50,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     
     try {
       await session.withTransaction(async () => {
-        // Get current user and update balance
+        // Get current user (no balance update until admin approval)
         const user = await User.findById(userId).session(session);
         if (!user) {
           throw new Error('User not found');
@@ -60,15 +60,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           throw new Error('Account not approved for transactions');
         }
 
-        // Update user balance
-        const newBalance = user.balance + amount;
-        await User.findByIdAndUpdate(
-          userId,
-          { balance: newBalance },
-          { session }
-        );
-
-        // Create transaction record
+        // Create pending transaction record (balance not updated yet)
         const transaction = new Transaction({
           type: 'deposit',
           amount: amount,
@@ -79,7 +71,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           senderName: 'Bank Deposit',
           receiverName: user.name,
           narration: description,
-          status: 'completed',
+          status: 'pending', // Changed to pending - requires admin approval
           transactionId: `DEP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
         });
 
@@ -87,13 +79,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
         res.status(200).json({
           success: true,
-          message: 'Deposit processed successfully',
+          message: 'Deposit request submitted successfully. Awaiting admin approval.',
           transaction: {
             id: transaction._id,
             amount: amount,
-            newBalance: newBalance,
+            newBalance: user.balance, // Current balance (unchanged)
             type: 'deposit',
-            status: 'completed',
+            status: 'pending',
             transactionId: transaction.transactionId,
             createdAt: transaction.createdAt
           }

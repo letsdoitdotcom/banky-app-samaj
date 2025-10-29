@@ -147,7 +147,7 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
           throw new Error(`Insufficient balance. Available: ${formatter.format(user.balance)}, Required: ${formatter.format(amount)}`);
         }
 
-        // For internal transfers, update both balances atomically
+        // For internal transfers, validate receiver but don't update balances (pending admin approval)
         if (type === 'internal') {
           const receiverUser = await User.findOne({ 
             accountNumber: sanitizedReceiverAccount, 
@@ -159,21 +159,7 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             throw new Error('Recipient account not found or not eligible for transfers');
           }
 
-          // Deduct from sender
-          await User.findByIdAndUpdate(
-            userId,
-            { $inc: { balance: -amount } },
-            { session }
-          );
-
-          // Add to receiver
-          await User.findByIdAndUpdate(
-            receiverUser._id,
-            { $inc: { balance: amount } },
-            { session }
-          );
-
-          // Create completed transaction record with user names
+          // Create pending transaction record (no balance changes until admin approval)
           const transaction = new Transaction({
             senderId: userId,
             receiverId: receiverUser._id,
@@ -183,22 +169,15 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             receiverName: receiverUser.name,
             amount,
             type,
-            status: 'completed',
+            status: 'pending', // Changed to pending - requires admin approval
             narration: sanitizedNarration,
-            completedAt: new Date(),
             transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 
           await transaction.save({ session });
           return transaction;
         } else {
-          // External transfer - just deduct and create pending transaction
-          await User.findByIdAndUpdate(
-            userId,
-            { $inc: { balance: -amount } },
-            { session }
-          );
-
+          // External transfer - create pending transaction (no balance changes until admin approval)
           const transaction = new Transaction({
             senderId: userId,
             receiverId: null, // External transfers have no internal receiver
@@ -208,16 +187,12 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
             receiverName: 'External Bank Account',
             amount,
             type,
-            status: 'pending',
+            status: 'pending', // Changed to pending - requires admin approval
             narration: sanitizedNarration,
             transactionId: `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           });
 
           await transaction.save({ session });
-          
-          // Schedule auto-completion for external transfer
-          scheduleTransferCompletion(transaction._id.toString());
-          
           return transaction;
         }
       });
@@ -241,9 +216,7 @@ async function handleTransfer(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(500).json({ error: 'Transaction processing error' });
     }
 
-    const statusMessage = type === 'internal' 
-      ? 'Transfer completed successfully!'
-      : 'Transfer initiated successfully. Status: Pending External Processing.';
+    const statusMessage = 'Transfer request submitted successfully. Awaiting admin approval.';
 
     res.status(201).json({
       message: statusMessage,

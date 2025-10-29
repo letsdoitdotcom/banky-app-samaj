@@ -15,6 +15,9 @@ export interface ITransaction extends Document {
   transactionId?: string;
   completedAt?: Date;
   completedBy?: mongoose.Types.ObjectId;
+  adminComment?: string;
+  processedBy?: mongoose.Types.ObjectId;
+  processedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,7 +85,17 @@ const TransactionSchema = new Schema<ITransaction>({
   completedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin'
-  }
+  },
+  adminComment: {
+    type: String,
+    maxlength: [500, 'Admin comment cannot exceed 500 characters'],
+    trim: true
+  },
+  processedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  processedAt: Date
 }, {
   timestamps: true
 });

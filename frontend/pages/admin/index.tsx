@@ -32,11 +32,15 @@ interface Transaction {
   senderAccount: string;
   receiverAccount: string;
   amount: number;
-  type: 'internal' | 'external';
+  type: 'internal' | 'external' | 'deposit';
   status: 'pending' | 'completed' | 'failed';
   narration?: string;
   createdAt: string;
   senderName?: string;
+  receiverName?: string;
+  adminComment?: string;
+  processedBy?: string;
+  processedAt?: string;
 }
 
 interface Stats {
@@ -102,6 +106,40 @@ export default function AdminDashboard() {
     } catch (error) {
       const errorMessage = handleAPIError(error);
       toast.error(errorMessage);
+    }
+  };
+
+  const handleApproveTransaction = async (transactionId: string, action: 'approve' | 'reject') => {
+    const actionText = action === 'approve' ? 'approve' : 'reject';
+    const comment = prompt(`Please enter a comment for this ${actionText}al (optional):`);
+    
+    try {
+      toast.loading(`${action === 'approve' ? 'Approving' : 'Rejecting'} transaction...`, { id: 'transaction-action' });
+      
+      const response = await fetch('/api/admin/approve-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({
+          transactionId,
+          action,
+          adminComment: comment || undefined
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Transaction ${actionText}d successfully!`, { id: 'transaction-action' });
+        fetchData(); // Refresh data
+      } else {
+        toast.error(data.error || `Failed to ${actionText} transaction`, { id: 'transaction-action' });
+      }
+    } catch (error) {
+      console.error(`Transaction ${actionText} error:`, error);
+      toast.error(`Error ${actionText}ing transaction`, { id: 'transaction-action' });
     }
   };
 
@@ -415,12 +453,24 @@ export default function AdminDashboard() {
                         <div>
                           <p className="font-medium text-gray-900">{formatCurrency(transaction.amount)}</p>
                           <p className="text-sm text-gray-600">
+                            {transaction.senderName || transaction.senderAccount} → {transaction.receiverName || transaction.receiverAccount}
+                          </p>
+                          <p className="text-xs text-gray-500">
                             {transaction.senderAccount} → {transaction.receiverAccount}
                           </p>
                         </div>
-                        <span className={`badge ${getTransactionStatusClass(transaction.status)}`}>
-                          {transaction.status}
-                        </span>
+                        <div className="text-right">
+                          <span className={`badge ${getTransactionStatusClass(transaction.status)}`}>
+                            {transaction.status}
+                          </span>
+                          {transaction.status === 'pending' && (
+                            <div className="mt-1">
+                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">
+                                Needs Approval
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                     {transactions.length === 0 && (
@@ -909,7 +959,8 @@ export default function AdminDashboard() {
                         <th className="table-cell font-medium text-gray-900">Type</th>
                         <th className="table-cell font-medium text-gray-900">Status</th>
                         <th className="table-cell font-medium text-gray-900">Date</th>
-                        <th className="table-cell font-medium text-gray-900">Narration</th>
+                        <th className="table-cell font-medium text-gray-900">Description</th>
+                        <th className="table-cell font-medium text-gray-900">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -918,10 +969,23 @@ export default function AdminDashboard() {
                           <td className="table-cell font-medium text-gray-900">
                             {formatCurrency(transaction.amount)}
                           </td>
-                          <td className="table-cell text-gray-600">{transaction.senderAccount}</td>
-                          <td className="table-cell text-gray-600">{transaction.receiverAccount}</td>
+                          <td className="table-cell text-gray-600">
+                            <div>
+                              <div className="font-medium">{transaction.senderName || 'N/A'}</div>
+                              <div className="text-xs text-gray-500">{transaction.senderAccount}</div>
+                            </div>
+                          </td>
+                          <td className="table-cell text-gray-600">
+                            <div>
+                              <div className="font-medium">{transaction.receiverName || 'N/A'}</div>
+                              <div className="text-xs text-gray-500">{transaction.receiverAccount}</div>
+                            </div>
+                          </td>
                           <td className="table-cell">
-                            <span className={`badge ${transaction.type === 'internal' ? 'badge-info' : 'badge-warning'}`}>
+                            <span className={`badge ${
+                              transaction.type === 'internal' ? 'badge-info' : 
+                              transaction.type === 'deposit' ? 'badge-success' : 'badge-warning'
+                            }`}>
                               {transaction.type}
                             </span>
                           </td>
@@ -932,7 +996,36 @@ export default function AdminDashboard() {
                           </td>
                           <td className="table-cell text-gray-600">{formatDate(transaction.createdAt)}</td>
                           <td className="table-cell text-gray-600">
-                            {transaction.narration || 'No description'}
+                            <div className="max-w-xs truncate" title={transaction.narration}>
+                              {transaction.narration || 'No description'}
+                            </div>
+                          </td>
+                          <td className="table-cell">
+                            {transaction.status === 'pending' ? (
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleApproveTransaction(transaction._id, 'approve')}
+                                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-colors"
+                                  title="Approve Transaction"
+                                >
+                                  ✓ Approve
+                                </button>
+                                <button
+                                  onClick={() => handleApproveTransaction(transaction._id, 'reject')}
+                                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+                                  title="Reject Transaction"
+                                >
+                                  ✗ Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-500">
+                                {transaction.status === 'completed' ? '✓ Processed' : '✗ Rejected'}
+                                {transaction.processedAt && (
+                                  <div className="text-xs">{formatDate(transaction.processedAt)}</div>
+                                )}
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
