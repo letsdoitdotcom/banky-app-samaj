@@ -6,7 +6,7 @@ import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
 import { depositRateLimit } from '../../../middleware/rateLimit';
 import Joi from 'joi';
 
-// Validation schema for deposit
+// Validation schema for deposit requests
 const depositSchema = Joi.object({
   amount: Joi.number().positive().max(10000).required().messages({
     'number.base': 'Amount must be a valid number',
