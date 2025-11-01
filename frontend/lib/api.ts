@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://banky-app-samaj.vercel.app';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lumartrust.com';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
