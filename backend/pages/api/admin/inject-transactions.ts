@@ -124,16 +124,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Verify admin authentication
     const token = req.headers.authorization?.replace('Bearer ', '');
+    console.log('🔍 Auth Debug - Token present:', !!token);
+    
     if (!token) {
+      console.log('❌ No token provided');
       return res.status(401).json({ error: 'No authorization token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      console.log('✅ Token decoded successfully, userId:', decoded.userId);
+    } catch (jwtError) {
+      console.log('❌ JWT verification failed:', jwtError);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
     const adminUser = await User.findById(decoded.userId);
+    console.log('👤 User found:', !!adminUser, 'Role:', adminUser?.role);
     
-    if (!adminUser || adminUser.role !== 'admin') {
+    if (!adminUser) {
+      console.log('❌ User not found in database');
+      return res.status(403).json({ error: 'User not found' });
+    }
+    
+    if (adminUser.role !== 'admin') {
+      console.log('❌ User role is not admin:', adminUser.role);
       return res.status(403).json({ error: 'Admin access required' });
     }
+
+    console.log('✅ Admin authentication successful');
 
     const { 
       targetUserId, 
