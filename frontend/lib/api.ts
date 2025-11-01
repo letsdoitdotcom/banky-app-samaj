@@ -119,6 +119,14 @@ export const adminAPI = {
     action: 'approve' | 'reject';
     adminComment?: string;
   }) => api.post('/api/admin/approve-transaction', transactionData),
+  
+  injectTransactions: (injectionData: {
+    targetUserId: string;
+    startDate: string;
+    endDate: string;
+    totalTransactions: number;
+    incomingPercentage: number;
+  }) => api.post('/api/admin/inject-transactions', injectionData),
 };
 
 // Generic error handler

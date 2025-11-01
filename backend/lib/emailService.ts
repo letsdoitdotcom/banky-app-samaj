@@ -23,7 +23,7 @@ const createTransporter = (): Transporter => {
   }
 };
 
-// Email verification template
+// Enhanced email verification with Resend primary and SMTP fallback
 export const sendVerificationEmail = async (
   email: string, 
   name: string, 
@@ -34,9 +34,74 @@ export const sendVerificationEmail = async (
   const sanitizedName = sanitizeName(name);
   const sanitizedToken = verificationToken.replace(/[^a-zA-Z0-9]/g, ''); // Only allow alphanumeric
   
-  const transporter = createTransporter();
-  const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
-  const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
+  console.log(`📧 Attempting to send verification email to: ${sanitizedEmail}`);
+  
+  // Try Resend first if API key is available
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      
+      const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://lumartrust.com');
+      const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
+      
+      const result = await resend.emails.send({
+        from: 'LumaTrust <noreply@resend.dev>',
+        to: sanitizedEmail,
+        subject: '🏦 Verify Your LumaTrust Email Address',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Verify Your LumaTrust Email</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f7f9fc; }
+              .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; }
+              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
+              .header h1 { color: white; margin: 0; font-size: 28px; }
+              .content { padding: 40px 30px; }
+              .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: 600; }
+              .footer { padding: 30px; text-align: center; color: #6b7280; font-size: 14px; background-color: #f9fafb; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🏦 Welcome to LumaTrust!</h1>
+              </div>
+              <div class="content">
+                <h2>Hello ${escapeHtml(sanitizedName)}!</h2>
+                <p>Thank you for registering with LumaTrust! Please verify your email address to complete your registration.</p>
+                <div style="text-align: center; margin: 32px 0;">
+                  <a href="${verificationUrl}" class="button">✅ Verify Email Address</a>
+                </div>
+                <p>If the button doesn't work, copy this link: ${escapeHtml(verificationUrl)}</p>
+                <p><strong>This link expires in 24 hours.</strong></p>
+              </div>
+              <div class="footer">
+                <p>© 2024 LumaTrust - Digital Banking Solutions</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+      
+      console.log('✅ Email sent via Resend, ID:', result.data?.id);
+      return { success: true, messageId: result.data?.id, service: 'Resend' };
+      
+    } catch (resendError) {
+      console.error('❌ Resend failed, falling back to SMTP:', resendError);
+      // Fall through to SMTP
+    }
+  }
+  
+  // Fallback to SMTP
+  try {
+    const transporter = createTransporter();
+    const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://lumartrust.com');
+    const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
   
   const htmlContent = `
     <!DOCTYPE html>
@@ -144,13 +209,14 @@ export const sendVerificationEmail = async (
     html: htmlContent,
   };
 
-  try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Verification email sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('❌ Failed to send verification email:', error);
-    throw new Error('Failed to send verification email');
+    console.log('✅ Verification email sent via SMTP, ID:', info.messageId);
+    return { success: true, messageId: info.messageId, service: 'SMTP' };
+    
+  } catch (smtpError) {
+    console.error('❌ Both Resend and SMTP failed:', smtpError);
+    const errorMessage = smtpError instanceof Error ? smtpError.message : 'Unknown error';
+    return { success: false, error: `Email service failed: ${errorMessage}` };
   }
 };
 

@@ -54,7 +54,7 @@ interface Stats {
 export default function AdminDashboard() {
   const router = useRouter();
   const { admin, logout, isAuthenticated, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'transactions'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'transactions' | 'inject-transactions'>('dashboard');
   const [users, setUsers] = useState<User[]>([]);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
   const [unverifiedUsers, setUnverifiedUsers] = useState<User[]>([]);
@@ -391,6 +391,16 @@ export default function AdminDashboard() {
               }`}
             >
               💳 Transactions
+            </button>
+            <button
+              onClick={() => setActiveTab('inject-transactions')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'inject-transactions'
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🎯 Inject History
             </button>
           </nav>
         </aside>
@@ -1058,6 +1068,10 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
+
+          {activeTab === 'inject-transactions' && (
+            <TransactionInjectionTab users={users} />
+          )}
         </main>
       </div>
 
@@ -1193,6 +1207,284 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Transaction Injection Component
+interface TransactionInjectionTabProps {
+  users: User[];
+}
+
+function TransactionInjectionTab({ users }: TransactionInjectionTabProps) {
+  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [totalTransactions, setTotalTransactions] = useState<number>(100);
+  const [incomingPercentage, setIncomingPercentage] = useState<number>(60);
+  const [isInjecting, setIsInjecting] = useState(false);
+
+  // Get approved users only
+  const approvedUsers = users.filter(user => user.approved && user.accountNumber);
+
+  const handleInjectTransactions = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedUser || !startDate || !endDate || !totalTransactions) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (new Date(startDate) >= new Date(endDate)) {
+      toast.error('Start date must be before end date');
+      return;
+    }
+
+    if (totalTransactions < 1 || totalTransactions > 10000) {
+      toast.error('Total transactions must be between 1 and 10,000');
+      return;
+    }
+
+    try {
+      setIsInjecting(true);
+      
+      const response = await adminAPI.injectTransactions({
+        targetUserId: selectedUser,
+        startDate,
+        endDate,
+        totalTransactions,
+        incomingPercentage
+      });
+
+      toast.success(`Successfully injected ${response.data.summary.totalTransactions} transactions!`, {
+        duration: 5000
+      });
+
+      // Reset form
+      setSelectedUser('');
+      setStartDate('');
+      setEndDate('');
+      setTotalTransactions(100);
+      setIncomingPercentage(60);
+
+    } catch (error) {
+      const errorMessage = handleAPIError(error);
+      toast.error(errorMessage);
+    } finally {
+      setIsInjecting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Transaction History Injection</h2>
+          <p className="text-gray-600 mt-2">Generate realistic transaction history for user accounts</p>
+        </div>
+        <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-2">
+          <span className="text-purple-700 text-sm font-medium">🎯 Admin Tool</span>
+        </div>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex">
+          <span className="text-yellow-600 text-xl mr-3">⚠️</span>
+          <div>
+            <h4 className="text-sm font-medium text-yellow-800">Important Notice</h4>
+            <p className="text-sm text-yellow-700 mt-1">
+              This tool generates realistic transaction history for testing purposes. 
+              It will affect the user's account balance and create permanent transaction records.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <form onSubmit={handleInjectTransactions} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* User Selection */}
+            <div>
+              <label className="form-label">
+                Target User *
+              </label>
+              <select
+                value={selectedUser}
+                onChange={(e) => setSelectedUser(e.target.value)}
+                className="form-input"
+                required
+              >
+                <option value="">Select a user...</option>
+                {approvedUsers.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.name} - {user.accountNumber} (Balance: {formatCurrency(user.balance)})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-600 mt-1">
+                Only approved users with account numbers are shown
+              </p>
+            </div>
+
+            {/* Total Transactions */}
+            <div>
+              <label className="form-label">
+                Total Transactions *
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10000"
+                value={totalTransactions}
+                onChange={(e) => setTotalTransactions(parseInt(e.target.value) || 0)}
+                className="form-input"
+                required
+              />
+              <p className="text-xs text-gray-600 mt-1">
+                Number of transactions to generate (1-10,000)
+              </p>
+            </div>
+
+            {/* Start Date */}
+            <div>
+              <label className="form-label">
+                Start Date *
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="form-input"
+                max={new Date().toISOString().split('T')[0]}
+                required
+              />
+              <p className="text-xs text-gray-600 mt-1">
+                Beginning of transaction history period
+              </p>
+            </div>
+
+            {/* End Date */}
+            <div>
+              <label className="form-label">
+                End Date *
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="form-input"
+                max={new Date().toISOString().split('T')[0]}
+                required
+              />
+              <p className="text-xs text-gray-600 mt-1">
+                End of transaction history period
+              </p>
+            </div>
+
+            {/* Incoming Percentage */}
+            <div className="md:col-span-2">
+              <label className="form-label">
+                Incoming vs Outgoing Ratio: {incomingPercentage}% incoming, {100 - incomingPercentage}% outgoing
+              </label>
+              <input
+                type="range"
+                min="10"
+                max="90"
+                value={incomingPercentage}
+                onChange={(e) => setIncomingPercentage(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>10% incoming</span>
+                <span>50% incoming</span>
+                <span>90% incoming</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Section */}
+          {selectedUser && startDate && endDate && totalTransactions > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-blue-800 mb-2">📋 Injection Preview</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-blue-600 font-medium">Total Transactions:</span>
+                  <div className="text-blue-800">{totalTransactions.toLocaleString()}</div>
+                </div>
+                <div>
+                  <span className="text-blue-600 font-medium">Incoming:</span>
+                  <div className="text-green-700">{Math.round(totalTransactions * (incomingPercentage / 100)).toLocaleString()}</div>
+                </div>
+                <div>
+                  <span className="text-blue-600 font-medium">Outgoing:</span>
+                  <div className="text-red-700">{Math.round(totalTransactions * ((100 - incomingPercentage) / 100)).toLocaleString()}</div>
+                </div>
+                <div>
+                  <span className="text-blue-600 font-medium">Date Range:</span>
+                  <div className="text-blue-800">{Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} days</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedUser('');
+                setStartDate('');
+                setEndDate('');
+                setTotalTransactions(100);
+                setIncomingPercentage(60);
+              }}
+              className="btn-secondary"
+              disabled={isInjecting}
+            >
+              Reset Form
+            </button>
+            <button
+              type="submit"
+              disabled={isInjecting || !selectedUser || !startDate || !endDate || !totalTransactions}
+              className="btn-primary"
+            >
+              {isInjecting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Injecting Transactions...
+                </>
+              ) : (
+                '🎯 Inject Transaction History'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Information Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="card bg-green-50 border-green-200">
+          <h4 className="text-green-800 font-medium mb-2">✨ What This Tool Does</h4>
+          <ul className="text-sm text-green-700 space-y-1">
+            <li>• Generates realistic transaction history</li>
+            <li>• Distributes transactions randomly across date range</li>
+            <li>• Creates varied transaction types (salary, rent, groceries, etc.)</li>
+            <li>• Updates user account balance automatically</li>
+            <li>• Uses realistic amounts and descriptions</li>
+          </ul>
+        </div>
+
+        <div className="card bg-purple-50 border-purple-200">
+          <h4 className="text-purple-800 font-medium mb-2">🎲 Randomization Features</h4>
+          <ul className="text-sm text-purple-700 space-y-1">
+            <li>• Random dates within specified range</li>
+            <li>• Varied daily transaction counts (0-5 per day)</li>
+            <li>• Different transaction amounts by category</li>
+            <li>• Mix of internal and external transactions</li>
+            <li>• Realistic sender/receiver names</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

@@ -129,13 +129,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await user.save();
 
-    // Send verification email
+    // Send verification email with enhanced service
     try {
       const { sendVerificationEmail } = await import('../../../lib/emailService');
-      await sendVerificationEmail(user.email, user.name, verificationToken);
-      console.log('✅ Verification email sent to:', user.email);
+      const emailResult = await sendVerificationEmail(user.email, user.name, verificationToken);
+      
+      if (emailResult.success) {
+        console.log(`✅ Verification email sent successfully to:`, user.email, 'MessageID:', emailResult.messageId);
+      } else {
+        console.error('❌ Failed to send verification email:', emailResult.error || 'Unknown error');
+        // Continue with registration even if email fails, but log the issue
+      }
     } catch (emailError) {
-      console.error('❌ Failed to send verification email:', emailError);
+      console.error('❌ Email service error during registration:', emailError);
       // Continue with registration even if email fails
     }
 

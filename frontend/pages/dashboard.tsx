@@ -255,11 +255,6 @@ export default function Dashboard() {
       return;
     }
 
-    if (amount > 10000) {
-      toast.error('Maximum deposit amount is $10,000');
-      return;
-    }
-
     try {
       setDepositLoading(true);
       
@@ -984,7 +979,6 @@ export default function Dashboard() {
                         type="number"
                         step="0.01"
                         min="0.01"
-                        max="10000"
                         value={depositForm.amount}
                         onChange={(e) => setDepositForm({ amount: e.target.value })}
                         className="form-input pl-8"
@@ -993,7 +987,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <p className="text-xs text-gray-600 mt-1">
-                      Minimum: $0.01 | Maximum: $10,000.00
+                      Minimum: $0.01 | No maximum limit
                     </p>
                   </div>
 

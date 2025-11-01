@@ -8,10 +8,9 @@ import Joi from 'joi';
 
 // Validation schema for deposit requests
 const depositSchema = Joi.object({
-  amount: Joi.number().positive().max(10000).required().messages({
+  amount: Joi.number().positive().required().messages({
     'number.base': 'Amount must be a valid number',
     'number.positive': 'Amount must be greater than zero',
-    'number.max': 'Maximum deposit amount is $10,000',
     'any.required': 'Please enter a deposit amount'
   }),
   description: Joi.string().allow('').max(200).default('Bank Deposit')
