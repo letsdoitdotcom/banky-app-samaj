@@ -986,9 +986,6 @@ export default function Dashboard() {
                         required
                       />
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Minimum: $0.01 | No maximum limit
-                    </p>
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
