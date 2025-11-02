@@ -146,9 +146,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error('❌ Failed to send verification email:', emailResult.error || 'Unknown error');
         // Continue with registration even if email fails, but log the issue
       }
-    } catch (emailError) {
+    } catch (emailError: any) {
       console.error('❌ Email service error during registration:', emailError);
-      console.error('❌ Email error stack:', emailError.stack);
+      console.error('❌ Email error stack:', emailError?.stack);
       // Continue with registration even if email fails
     }
 
