@@ -8,7 +8,7 @@ FRONTEND_URL=https://incomparable-macaron-eb6786.netlify.app
 # Keep other variables the same
 MONGODB_URI=your-mongodb-uri
 JWT_SECRET=your-jwt-secret  
-RESEND_API_KEY=re_Eusa3rgG_LggxwzzqmQpiJVRBjkghwCJu
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ## Update Netlify Frontend Environment

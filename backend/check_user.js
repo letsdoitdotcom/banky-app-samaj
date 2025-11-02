@@ -3,7 +3,7 @@ require('dotenv').config();
 
 async function checkUser() {
   try {
-    const mongoUri = 'mongodb+srv://paulsitelescope:GfBx5FhCQxwl9pt5@cluster0.fqsczmc.mongodb.net/bankyapp?retryWrites=true&w=majority&appName=Cluster0';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://username:password@cluster.mongodb.net/bankyapp?retryWrites=true&w=majority';
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 

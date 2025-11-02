@@ -6,8 +6,8 @@
 Make sure ALL these environment variables are set in your Vercel dashboard:
 
 **Critical Variables:**
-- `MONGODB_URI`: `mongodb+srv://letsdoitdotcom_db_user:cr8CSZjgXyyGcUU2@bankky-app-samaj.czhksss.mongodb.net/bankyapp?retryWrites=true&w=majority&appName=bankky-app-samaj`
-- `JWT_SECRET`: `92e00c157f4cef2d7d58259ec91200eeb3c0101190db7f2c4e06533ebc6abaa49c7ae7b311051e6637e4f4ed7709d0d1435a1b27e9d14a00025202bf927b2712`
+- `MONGODB_URI`: `mongodb+srv://username:password@cluster.mongodb.net/bankyapp?retryWrites=true&w=majority`
+- `JWT_SECRET`: `your-256-bit-secret-key-here`
 - `NODE_ENV`: `production`
 
 **Admin Configuration:**

@@ -4,7 +4,7 @@
 const mongoose = require('mongoose');
 
 // Use production MongoDB URI directly
-const MONGODB_URI = "mongodb+srv://letsdoitdotcom_db_user:cr8CSZjgXyyGcUU2@bankky-app-samaj.czhksss.mongodb.net/bankyapp?retryWrites=true&w=majority&appName=bankky-app-samaj";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://username:password@cluster.mongodb.net/bankyapp?retryWrites=true&w=majority";
 
 const AdminSchema = new mongoose.Schema({
   name: {
