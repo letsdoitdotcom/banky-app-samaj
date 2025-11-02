@@ -378,7 +378,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await register({
+      const success = await register({
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
@@ -394,8 +394,11 @@ export default function Register() {
       });
       
       // Only redirect if registration was successful
-      if (response.data.success) {
+      if (success) {
         router.push('/verification-pending');
+      } else {
+        // Registration failed, error already shown by useAuth
+        setCurrentStep(1);
       }
     } catch (err: any) {
       console.error('Registration error:', err);
