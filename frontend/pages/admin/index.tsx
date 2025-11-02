@@ -1287,19 +1287,6 @@ function TransactionInjectionTab({ users }: TransactionInjectionTabProps) {
         </div>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex">
-          <span className="text-yellow-600 text-xl mr-3">⚠️</span>
-          <div>
-            <h4 className="text-sm font-medium text-yellow-800">Important Notice</h4>
-            <p className="text-sm text-yellow-700 mt-1">
-              This tool generates realistic transaction history for testing purposes. 
-              It will affect the user's account balance and create permanent transaction records.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="card">
         <form onSubmit={handleInjectTransactions} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
