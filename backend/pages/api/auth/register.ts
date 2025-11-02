@@ -130,18 +130,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await user.save();
 
     // Send verification email with enhanced service
+    console.log('🔧 Starting email send process for:', user.email);
+    console.log('📋 Environment check - RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+    
     try {
       const { sendVerificationEmail } = await import('../../../lib/emailService');
+      console.log('✅ Email service imported successfully');
+      
       const emailResult = await sendVerificationEmail(user.email, user.name, verificationToken);
+      console.log('📧 Email send result:', emailResult);
       
       if (emailResult.success) {
-        console.log(`✅ Verification email sent successfully to:`, user.email, 'MessageID:', emailResult.messageId);
+        console.log(`✅ Verification email sent successfully to:`, user.email, 'MessageID:', emailResult.messageId, 'Service:', emailResult.service);
       } else {
         console.error('❌ Failed to send verification email:', emailResult.error || 'Unknown error');
         // Continue with registration even if email fails, but log the issue
       }
     } catch (emailError) {
       console.error('❌ Email service error during registration:', emailError);
+      console.error('❌ Email error stack:', emailError.stack);
       // Continue with registration even if email fails
     }
 
