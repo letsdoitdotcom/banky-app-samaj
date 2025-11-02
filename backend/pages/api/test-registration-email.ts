@@ -48,12 +48,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
       
-    } catch (importError) {
+    } catch (importError: any) {
       console.error('❌ Email service import failed:', importError);
       return res.status(500).json({
         success: false,
         error: 'Email service import failed',
-        details: importError.message
+        details: importError?.message || 'Unknown import error'
       });
     }
     
