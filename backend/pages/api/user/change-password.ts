@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import connectDB from '../../../lib/db';
 import User from '../../../models/User';
 import { authMiddleware, AuthenticatedRequest } from '../../../middleware/auth';
-import { hashPassword, verifyPassword } from '../../../lib/auth';
-import Joi from 'joi';
+import { hashPassword, comparePassword } from '../../../lib/auth';
+import * as Joi from 'joi';
 
 // Validation schema for password change
 const changePasswordSchema = Joi.object({
@@ -51,13 +51,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await verifyPassword(currentPassword, user.password);
+    const isCurrentPasswordValid = await comparePassword(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
 
     // Check if new password is different from current
-    const isSamePassword = await verifyPassword(newPassword, user.password);
+    const isSamePassword = await comparePassword(newPassword, user.password);
     if (isSamePassword) {
       return res.status(400).json({ error: 'New password must be different from current password' });
     }
