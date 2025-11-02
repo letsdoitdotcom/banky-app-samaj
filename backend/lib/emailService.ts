@@ -46,41 +46,51 @@ export const sendVerificationEmail = async (
       const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
       
       const result = await resend.emails.send({
-        from: 'LumaTrust <noreply@lumartrust.com>',
+        from: 'LumaTrust Security <noreply@lumartrust.com>',
         to: sanitizedEmail,
-        subject: '🏦 Verify Your LumaTrust Email Address',
+        subject: 'Verify Your LumaTrust Email Address',
+        reply_to: 'support@lumartrust.com',
         html: `
           <!DOCTYPE html>
           <html>
           <head>
             <meta charset="utf-8">
-            <title>Verify Your LumaTrust Email</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Email Verification Required</title>
             <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f7f9fc; }
-              .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; }
-              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
-              .header h1 { color: white; margin: 0; font-size: 28px; }
-              .content { padding: 40px 30px; }
-              .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: 600; }
-              .footer { padding: 30px; text-align: center; color: #6b7280; font-size: 14px; background-color: #f9fafb; }
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f8fafc; }
+              .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+              .header { background-color: #1e40af; padding: 30px; text-align: center; }
+              .header h1 { color: white; margin: 0; font-size: 24px; font-weight: 600; }
+              .content { padding: 30px; }
+              .button { display: inline-block; padding: 12px 24px; background-color: #1e40af; color: white !important; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 500; }
+              .footer { padding: 20px 30px; text-align: center; color: #64748b; font-size: 14px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
+              .security-note { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 20px 0; }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
-                <h1>🏦 Welcome to LumaTrust!</h1>
+                <h1>Email Verification Required</h1>
               </div>
               <div class="content">
-                <h2>Hello ${escapeHtml(sanitizedName)}!</h2>
-                <p>Thank you for registering with LumaTrust! Please verify your email address to complete your registration.</p>
-                <div style="text-align: center; margin: 32px 0;">
-                  <a href="${verificationUrl}" class="button">✅ Verify Email Address</a>
+                <p>Dear ${escapeHtml(sanitizedName)},</p>
+                <p>Thank you for creating your LumaTrust account. To complete your registration and secure your account, please verify your email address by clicking the button below.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${verificationUrl}" class="button">Verify Email Address</a>
                 </div>
-                <p>If the button doesn't work, copy this link: ${escapeHtml(verificationUrl)}</p>
-                <p><strong>This link expires in 24 hours.</strong></p>
+                <div class="security-note">
+                  <strong>Security Notice:</strong> This verification link will expire in 24 hours for your security.
+                </div>
+                <p>If you cannot click the button above, please copy and paste the following URL into your browser:</p>
+                <p style="word-break: break-all; color: #1e40af; font-family: monospace; font-size: 14px; background-color: #f1f5f9; padding: 10px; border-radius: 4px;">${escapeHtml(verificationUrl)}</p>
+                <p>If you did not create this account, please ignore this email.</p>
+                <p>Best regards,<br>The LumaTrust Security Team</p>
               </div>
               <div class="footer">
-                <p>© 2024 LumaTrust - Digital Banking Solutions</p>
+                <p>LumaTrust Banking Platform<br>
+                This is an automated message. Please do not reply to this email.</p>
+                <p>© 2024 LumaTrust. All rights reserved.</p>
               </div>
             </div>
           </body>
