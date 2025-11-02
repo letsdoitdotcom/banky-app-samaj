@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { userAPI, formatCurrency, formatDate, getTransactionStatusClass, handleAPIError } from '../lib/api';
 import toast from 'react-hot-toast';
@@ -413,13 +414,22 @@ export default function Dashboard() {
                   <p className="text-sm font-bold text-green-600">{formatCurrency(userDetails.balance || 0)}</p>
                 </div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <span>⏻</span>
-                <span className="hidden sm:inline text-sm">Logout</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <Link
+                  href="/settings"
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
+                >
+                  <span>⚙️</span>
+                  <span className="hidden sm:inline text-sm">Settings</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
+                >
+                  <span>⏻</span>
+                  <span className="hidden sm:inline text-sm">Logout</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

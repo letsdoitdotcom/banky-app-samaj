@@ -381,3 +381,154 @@ export const sendTestEmail = async (email: string) => {
     throw error;
   }
 };
+
+// Send password reset email
+export const sendPasswordResetEmail = async (email: string, name: string, resetToken: string) => {
+  // Sanitize inputs
+  const sanitizedEmail = escapeHtml(email.trim());
+  const sanitizedName = escapeHtml(name.trim());
+  const sanitizedToken = resetToken.replace(/[^a-zA-Z0-9]/g, ''); // Only allow alphanumeric for token
+  
+  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${sanitizedToken}`;
+  
+  const subject = '🔒 Reset Your BankyApp Password';
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password - BankyApp</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f7f9fc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 40px 30px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 28px; font-weight: bold; }
+        .content { padding: 40px 30px; }
+        .warning-box { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center; border: 2px solid #ef4444; }
+        .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white !important; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: 600; }
+        .security-note { background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #fbbf24; }
+        .footer { padding: 30px; text-align: center; color: #6b7280; font-size: 14px; background-color: #f9fafb; }
+        .button:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🔒 Password Reset Request</h1>
+        </div>
+        
+        <div class="content">
+          <h2 style="color: #1f2937; margin-bottom: 16px;">Hello ${sanitizedName}!</h2>
+          
+          <p style="color: #4b5563; margin-bottom: 24px;">
+            We received a request to reset your BankyApp account password. 
+            If you made this request, click the button below to set a new password.
+          </p>
+          
+          <div class="warning-box">
+            <h3 style="color: #b91c1c; margin: 0 0 16px 0;">⚠️ Security Notice</h3>
+            <p style="margin: 0; color: #7f1d1d;">
+              This reset link will expire in <strong>24 hours</strong> for your security.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${resetLink}" class="button" style="color: white; text-decoration: none;">
+              🔑 Reset My Password
+            </a>
+          </div>
+          
+          <div class="security-note">
+            <h4 style="color: #92400e; margin: 0 0 12px 0;">🛡️ Security Tips:</h4>
+            <ul style="color: #78350f; margin: 0; padding-left: 20px;">
+              <li>If you didn't request this reset, you can safely ignore this email</li>
+              <li>Never share your login credentials with anyone</li>
+              <li>Always verify the URL before entering your new password</li>
+              <li>Use a strong, unique password for your BankyApp account</li>
+            </ul>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
+            <strong>Can't click the button?</strong> Copy and paste this link into your browser:<br>
+            <span style="background-color: #f3f4f6; padding: 8px; border-radius: 4px; word-break: break-all; display: inline-block; margin-top: 8px;">
+              ${resetLink}
+            </span>
+          </p>
+        </div>
+        
+        <div class="footer">
+          <p style="margin: 0 0 8px 0;">
+            <strong>BankyApp</strong> - Secure Digital Banking
+          </p>
+          <p style="margin: 0; font-size: 12px;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+          <p style="margin: 8px 0 0 0; font-size: 12px;">
+            If you continue to have problems, contact our support team.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Try Resend first (if API key is available)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      
+      console.log('📧 Attempting to send password reset email via Resend to:', sanitizedEmail);
+      
+      const result = await resend.emails.send({
+        from: 'BankyApp Security <noreply@lumartrust.com>',
+        to: sanitizedEmail,
+        subject,
+        reply_to: 'support@lumartrust.com',
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@lumartrust.com>',
+          'Message-ID': `<${Math.random().toString(36).substring(2)}@lumartrust.com>`,
+        },
+        html,
+      });
+      
+      console.log('📧 Full Resend result:', JSON.stringify(result, null, 2));
+      
+      if (result.error) {
+        console.error('❌ Resend API returned error:', result.error);
+        return { success: false, error: result.error, service: 'Resend' };
+      }
+      
+      if (result.data?.id) {
+        console.log('✅ Password reset email sent via Resend, ID:', result.data.id);
+        return { success: true, messageId: result.data.id, service: 'Resend' };
+      } else {
+        console.error('❌ Resend returned success but no message ID');
+        return { success: false, error: 'No message ID returned', service: 'Resend' };
+      }
+    } catch (error) {
+      console.error('❌ Resend email error:', error);
+      // Fall back to SMTP if Resend fails
+    }
+  }
+  
+  // Fallback to SMTP if Resend is not available or fails
+  const transporter = createTransporter();
+  
+  const mailOptions = {
+    from: `"BankyApp Security" <${process.env.EMAIL_USER}>`,
+    to: sanitizedEmail,
+    subject,
+    html,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Password reset email sent via SMTP:', info.messageId);
+    return { success: true, messageId: info.messageId, service: 'SMTP' };
+  } catch (error) {
+    console.error('❌ SMTP email error:', error);
+    throw error;
+  }
+};

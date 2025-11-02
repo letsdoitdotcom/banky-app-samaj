@@ -73,6 +73,12 @@ export const authAPI = {
     
   verifyEmail: (token: string) =>
     api.post('/api/auth/verify-email', { token }),
+    
+  forgotPassword: (email: string) =>
+    api.post('/api/auth/forgot-password', { email }),
+    
+  resetPassword: (data: { token: string; newPassword: string; confirmPassword: string }) =>
+    api.post('/api/auth/reset-password', data),
 };
 
 // User API functions
@@ -105,6 +111,12 @@ export const userAPI = {
     amount: number;
     description?: string;
   }) => api.post('/api/user/deposit', depositData),
+  
+  changePassword: (passwordData: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => api.post('/api/user/change-password', passwordData),
 };
 
 // Admin API functions

@@ -21,6 +21,8 @@ export interface IUser extends Document {
   balance: number;
   verificationToken?: string;
   verificationTokenExpires?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -90,7 +92,9 @@ const UserSchema = new Schema<IUser>({
     min: [0, 'Balance cannot be negative']
   },
   verificationToken: String,
-  verificationTokenExpires: Date
+  verificationTokenExpires: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date
 }, {
   timestamps: true
 });
@@ -100,6 +104,7 @@ UserSchema.index({ email: 1 });
 UserSchema.index({ accountNumber: 1 });
 UserSchema.index({ verified: 1, approved: 1 });
 UserSchema.index({ verificationToken: 1 });
+UserSchema.index({ passwordResetToken: 1 });
 
 // Generate account number before saving
 UserSchema.methods.generateAccountNumber = function() {
