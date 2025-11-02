@@ -378,7 +378,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await register({
+      const response = await register({
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
@@ -393,9 +393,25 @@ export default function Register() {
         idNumber: formData.idNumber
       });
       
-      router.push('/verification-pending');
+      // Only redirect if registration was successful
+      if (response.data.success) {
+        router.push('/verification-pending');
+      }
     } catch (err: any) {
-      setErrors({ email: err.message || 'Registration failed' });
+      console.error('Registration error:', err);
+      
+      // Extract error message from different possible error formats
+      let errorMessage = 'Registration failed';
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      // Show error and go back to first step
+      setErrors({ email: errorMessage });
       setCurrentStep(1);
     } finally {
       setLoading(false);

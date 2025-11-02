@@ -50,7 +50,7 @@ export default function VerificationPending() {
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</div>
-                <p><strong>Start banking</strong> with your $1,000 welcome balance!</p>
+                <p><strong>Start banking</strong> with your $50 welcome balance!</p>
               </div>
             </div>
           </div>
