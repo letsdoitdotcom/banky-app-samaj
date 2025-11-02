@@ -166,7 +166,7 @@ class EnhancedEmailService {
                 <li style="margin: 8px 0;"><strong>Email Verification</strong> - Click the button above</li>
                 <li style="margin: 8px 0;"><strong>Admin Review</strong> - Your account becomes eligible for approval</li>
                 <li style="margin: 8px 0;"><strong>Account Activation</strong> - You'll receive another email when approved</li>
-                <li style="margin: 8px 0;"><strong>Start Banking</strong> - Login with $1,000 welcome balance!</li>
+                <li style="margin: 8px 0;"><strong>Start Banking</strong> - Login with $50 welcome balance!</li>
               </ol>
             </div>
             
@@ -271,7 +271,7 @@ class EnhancedEmailService {
             <div class="highlight">
               <h3 style="color: #065f46; margin: 0 0 16px 0;">🏦 Your Banking Details</h3>
               <p style="margin: 8px 0; font-size: 18px;"><strong>Account Number:</strong> ${sanitizedAccountNumber}</p>
-              <p style="margin: 8px 0; font-size: 18px;"><strong>Welcome Balance:</strong> $1,000.00</p>
+              <p style="margin: 8px 0; font-size: 18px;"><strong>Welcome Balance:</strong> $50.00</p>
               <p style="margin: 8px 0; font-size: 16px; color: #059669;"><strong>Status:</strong> ✅ Active & Ready</p>
             </div>
             

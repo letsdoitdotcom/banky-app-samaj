@@ -41,7 +41,7 @@
 - Shows all `approved: false` users (regardless of verification)
 - Removed verification requirement for admin approval
 - Auto-verify users when admin approves them
-- Users get $1000 welcome balance upon approval
+- Users get $50 welcome balance upon approval
 
 ## 🚀 **Ready for Testing!**
 
@@ -57,7 +57,7 @@
 1. Login: https://incomparable-macaron-eb6786.netlify.app/admin-login
 2. **Credentials:** `admin@bankyapp.com` / `admin123`
 3. **Check Users tab** - you should now see all new registrations
-4. **Approve users** - they get account numbers and $1000 balance
+4. **Approve users** - they get account numbers and $50 balance
 
 ## 🎯 **What's Working Now:**
 
@@ -75,6 +75,6 @@
 - **Intelligent input formatting** - no manual dashes/parentheses
 - **Smart autocomplete** - just start typing city names
 - **Complete admin oversight** - see and approve all registrations
-- **Welcome bonus** - new users get $1000 starting balance
+- **Welcome bonus** - new users get $50 starting balance
 
 Your BankyApp now has a **production-quality registration experience** with professional UX/UI enhancements! 🏦✨
