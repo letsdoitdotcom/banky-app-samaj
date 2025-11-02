@@ -88,8 +88,22 @@ export const sendVerificationEmail = async (
         `,
       });
       
-      console.log('✅ Email sent via Resend, ID:', result.data?.id);
-      return { success: true, messageId: result.data?.id, service: 'Resend' };
+      console.log('📧 Full Resend result:', JSON.stringify(result, null, 2));
+      console.log('📧 Result data:', result.data);
+      console.log('📧 Result error:', result.error);
+      
+      if (result.error) {
+        console.error('❌ Resend API returned error:', result.error);
+        return { success: false, error: result.error, service: 'Resend' };
+      }
+      
+      if (result.data?.id) {
+        console.log('✅ Email sent via Resend, ID:', result.data.id);
+        return { success: true, messageId: result.data.id, service: 'Resend' };
+      } else {
+        console.error('❌ Resend returned success but no message ID');
+        return { success: false, error: 'No message ID returned', service: 'Resend' };
+      }
       
     } catch (resendError) {
       console.error('❌ Resend failed, falling back to SMTP:', resendError);
