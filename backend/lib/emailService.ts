@@ -42,7 +42,7 @@ export const sendVerificationEmail = async (
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       
-      const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://lumartrust.com');
+      const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
       const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
       
       const result = await resend.emails.send({
@@ -124,7 +124,7 @@ export const sendVerificationEmail = async (
   // Fallback to SMTP
   try {
     const transporter = createTransporter();
-    const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://lumartrust.com');
+    const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
     const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
   
   const htmlContent = `
