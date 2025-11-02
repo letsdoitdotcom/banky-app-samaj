@@ -21,27 +21,6 @@ const changePasswordSchema = Joi.object({
 });
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  // Handle CORS
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://incomparable-macaron-eb6786.netlify.app',
-    'https://lumartrust.com',
-    'https://www.lumartrust.com'
-  ];
-  
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -59,7 +38,11 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     }
 
     const { currentPassword, newPassword } = value;
-    const userId = req.user.id;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     // Find user
     const user = await User.findById(userId);
