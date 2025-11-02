@@ -94,11 +94,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (existingUser) {
-      if (existingUser.email === email) {
-        return res.status(400).json({ error: 'Email is already registered' });
-      }
+      // Always prevent re-use of verified ID numbers
       if (existingUser.idNumber === idNumber) {
         return res.status(400).json({ error: 'ID number is already registered' });
+      }
+      
+      // For email: only prevent if email is verified, allow overwrite if unverified
+      if (existingUser.email === email) {
+        if (existingUser.emailVerified) {
+          return res.status(400).json({ 
+            error: 'This email is already registered and verified. Please use a different email or login to your existing account.' 
+          });
+        } else {
+          // Email exists but not verified - remove the old unverified account
+          console.log(`🔄 Removing unverified account for email: ${email}`);
+          await User.deleteOne({ email: email });
+          console.log(`✅ Old unverified account removed, allowing new registration for: ${email}`);
+        }
       }
     }
 

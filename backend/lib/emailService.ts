@@ -46,7 +46,7 @@ export const sendVerificationEmail = async (
       const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
       
       const result = await resend.emails.send({
-        from: 'LumaTrust <noreply@resend.dev>',
+        from: 'LumaTrust <noreply@lumartrust.com>',
         to: sanitizedEmail,
         subject: '🏦 Verify Your LumaTrust Email Address',
         html: `
