@@ -42,7 +42,7 @@ export const sendVerificationEmail = async (
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       
-      const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
+      const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://lumartrust.com');
       const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
       
       const result = await resend.emails.send({
@@ -50,6 +50,10 @@ export const sendVerificationEmail = async (
         to: sanitizedEmail,
         subject: 'Verify Your LumaTrust Email Address',
         reply_to: 'support@lumartrust.com',
+        headers: {
+          'List-Unsubscribe': '<mailto:unsubscribe@lumartrust.com>',
+          'Message-ID': `<${Math.random().toString(36).substring(2)}@lumartrust.com>`,
+        },
         html: `
           <!DOCTYPE html>
           <html>
@@ -124,7 +128,7 @@ export const sendVerificationEmail = async (
   // Fallback to SMTP
   try {
     const transporter = createTransporter();
-    const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://incomparable-macaron-eb6786.netlify.app');
+    const baseUrl = sanitizeUrl(process.env.FRONTEND_URL || 'https://lumartrust.com');
     const verificationUrl = `${baseUrl}/verify-email?token=${sanitizedToken}`;
   
   const htmlContent = `
