@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDB from '../../../lib/db';
 import User from '../../../models/User';
+import Admin from '../../../models/Admin';
 import Transaction from '../../../models/Transaction';
 import jwt from 'jsonwebtoken';
 
@@ -140,17 +141,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const adminUser = await User.findById(decoded.userId);
-    console.log('👤 User found:', !!adminUser, 'Role:', adminUser?.role);
+    const adminUser = await Admin.findById(decoded.userId);
+    console.log('👤 Admin found:', !!adminUser);
     
     if (!adminUser) {
-      console.log('❌ User not found in database');
-      return res.status(403).json({ error: 'User not found' });
-    }
-    
-    if (adminUser.role !== 'admin') {
-      console.log('❌ User role is not admin:', adminUser.role);
-      return res.status(403).json({ error: 'Admin access required' });
+      console.log('❌ Admin not found in database');
+      return res.status(403).json({ error: 'Admin not found' });
     }
 
     console.log('✅ Admin authentication successful');
