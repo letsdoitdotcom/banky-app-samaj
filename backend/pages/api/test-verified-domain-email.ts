@@ -5,6 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const allowedOrigins = [
     'http://localhost:3000',
     'https://lumartrust.com',
+    'https://www.lumartrust.com',
     'https://incomparable-macaron-eb6786.netlify.app'
   ];
   

@@ -8,6 +8,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse): Promise
   const allowedOrigins = [
     'http://localhost:3000',
     'https://lumartrust.com',
+    'https://www.lumartrust.com',
     'https://incomparable-macaron-eb6786.netlify.app'
   ];
   

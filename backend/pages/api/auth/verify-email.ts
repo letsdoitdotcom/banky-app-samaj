@@ -6,7 +6,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Handle CORS
   const allowedOrigins = [
     'http://localhost:3000',
-    'https://incomparable-macaron-eb6786.netlify.app'
+    'https://incomparable-macaron-eb6786.netlify.app',
+    'https://lumartrust.com',
+    'https://www.lumartrust.com'
   ];
   
   const origin = req.headers.origin;

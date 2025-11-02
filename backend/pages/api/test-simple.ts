@@ -3,7 +3,19 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Simple CORS headers
-  res.setHeader('Access-Control-Allow-Origin', 'https://incomparable-macaron-eb6786.netlify.app');
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://incomparable-macaron-eb6786.netlify.app',
+    'https://lumartrust.com',
+    'https://www.lumartrust.com'
+  ];
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://lumartrust.com');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
