@@ -37,7 +37,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     user.approved = true;
     user.verified = true; // Auto-verify when admin approves
     user.accountNumber = accountNumber;
-    user.balance = 1000; // Initial welcome balance
+    user.balance = 50.00; // Initial welcome balance ($50)
     await user.save();
 
     // Send approval email

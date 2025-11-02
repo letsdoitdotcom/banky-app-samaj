@@ -74,7 +74,7 @@ export default function VerifyEmail() {
               <ol className="text-sm text-blue-700 text-left space-y-1">
                 <li>1. Our admin team will review your account</li>
                 <li>2. You'll receive an email once approved</li>
-                <li>3. Login to access your $1,000 welcome balance</li>
+                <li>3. Login to access your $50 welcome balance</li>
                 <li>4. Start banking with LumaTrust!</li>
               </ol>
             </div>

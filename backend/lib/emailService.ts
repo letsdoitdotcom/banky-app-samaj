@@ -202,7 +202,7 @@ export const sendVerificationEmail = async (
             <div class="step">
               <div class="step-number">4</div>
               <div>
-                <strong>Start banking with $1,000 welcome balance!</strong><br>
+                <strong>Start banking with $50 welcome balance!</strong><br>
                 <span style="color: #6b7280;">Full access to all banking features</span>
               </div>
             </div>
@@ -300,7 +300,7 @@ export const sendApprovalEmail = async (
             <h3 style="color: #065f46; margin: 0 0 16px 0;">🏦 Your Banking Details</h3>
             <div class="account-details">
               <p style="margin: 8px 0; font-size: 18px;"><strong>Account Number:</strong> ${accountNumber}</p>
-              <p style="margin: 8px 0; font-size: 18px;"><strong>Welcome Balance:</strong> $1,000.00</p>
+              <p style="margin: 8px 0; font-size: 18px;"><strong>Welcome Balance:</strong> $50.00</p>
               <p style="margin: 8px 0; font-size: 16px; color: #059669;"><strong>Status:</strong> ✅ Active & Ready</p>
             </div>
           </div>
